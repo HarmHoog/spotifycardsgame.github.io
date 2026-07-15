@@ -2,6 +2,8 @@
 
 A browser-based generator for creating **printable Spotify music cards** for quizzes.
 
+Try it out on: https://harmhoog.github.io/SpotifyCardsGame/
+
 Created by **Harm Hoogeveen** using **ChatGPT**.
 
 ## Features
