@@ -1,0 +1,2041 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Spotify Music Game — Duplex Cards</title>
+<style>
+:root {
+  --easy:#2eaf5d;
+  --medium:#3498db;
+  --hard:#e74c3c;
+  --expert:#2c3e50;
+  --ink:#17202a;
+}
+* { box-sizing:border-box; }
+html,body { margin:0; background:#e8eaed; color:var(--ink); font-family:Arial,Helvetica,sans-serif; }
+.toolbar {
+  position:sticky; top:0; z-index:10; max-width:1100px; margin:0 auto 12px;
+  padding:14px 18px; background:white; border-radius:0 0 14px 14px;
+  box-shadow:0 3px 16px rgba(0,0,0,.12); line-height:1.45;
+}
+.toolbar h1 { margin:0 0 6px; font-size:20px; }
+.toolbar button { border:0; border-radius:8px; padding:9px 14px; cursor:pointer; font-weight:700; margin:6px 6px 0 0; }
+.primary { background:#191414; color:white; }
+.secondary { background:#e9ecef; color:#222; }
+.status { font-weight:700; }
+.legend span { display:inline-block; margin-right:14px; }
+.dot { width:11px; height:11px; border-radius:50%; display:inline-block; margin-right:4px; }
+.sheet {
+  width:210mm; height:297mm; margin:10px auto; padding:10mm; background:white;
+  display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(4,1fr);
+  gap:3mm; page-break-after:always;
+}
+.card {
+  position:relative; overflow:hidden; border:.35mm dashed #555; border-radius:4mm;
+  background:var(--level,#777); display:flex; align-items:center; justify-content:center;
+  padding:5mm; text-align:center; color:white;
+}
+.card::before,.card::after {
+  content:""; position:absolute; border-radius:50%; background:rgba(255,255,255,.13);
+}
+.card::before { width:40mm;height:40mm;right:-20mm;top:-20mm; }
+.card::after { width:30mm;height:30mm;left:-16mm;bottom:-14mm; }
+.number { position:absolute; left:4mm; top:3mm; font-size:10pt; font-weight:900; z-index:2; }
+.level-name { position:absolute; right:4mm; top:3mm; font-size:8pt; font-weight:800; text-transform:uppercase; z-index:2; }
+.code-box {
+  width:100%; min-height:29mm; padding:3mm; background:white; border-radius:3mm;
+  box-shadow:0 2mm 5mm rgba(0,0,0,.18); display:flex; align-items:center; justify-content:center; z-index:1;
+}
+.code-box img { display:block; width:100%; height:auto; max-height:25mm; object-fit:contain; }
+.answer { flex-direction:column; padding:8mm 5mm 6mm; }
+.answer .year { font-size:31pt; font-weight:1000; line-height:1; margin-bottom:4mm; z-index:1; }
+.answer .title { font-size:14pt; font-weight:900; line-height:1.12; max-width:100%; z-index:1; }
+.answer .artist { font-size:10.5pt; font-weight:700; margin-top:3mm; z-index:1; }
+.answer .lookup { font-size:8pt; opacity:.85; margin-top:3mm; z-index:1; }
+.empty { background:white; border-color:#bbb; }
+.empty::before,.empty::after { display:none; }
+.warning { color:#b00020; }
+@page { size:A4 portrait; margin:0; }
+@media print {
+  html,body { background:white; }
+  .toolbar { display:none; }
+  .sheet { margin:0; }
+  .card { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+}
+</style>
+
+<style id="friendly-ui">
+  :root {
+    --app-bg: #f3f6fb;
+    --surface: #ffffff;
+    --surface-soft: #eef3f9;
+    --border: #d7e0eb;
+    --text: #1f2937;
+    --muted: #64748b;
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --accent: #7c3aed;
+    --radius: 16px;
+    --shadow: 0 12px 30px rgba(15, 23, 42, .08);
+  }
+
+  html, body {
+    background:
+      radial-gradient(circle at top left, rgba(37,99,235,.08), transparent 30%),
+      radial-gradient(circle at top right, rgba(124,58,237,.08), transparent 26%),
+      var(--app-bg);
+    color: var(--text);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  .toolbar {
+    position: static;
+    max-width: 1120px;
+    margin: 24px auto 16px;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .friendly-header {
+    padding: 24px 26px;
+    margin-bottom: 16px;
+    border-radius: 22px;
+    color: white;
+    background: linear-gradient(135deg, #1d4ed8, #7c3aed);
+    box-shadow: var(--shadow);
+  }
+
+  .friendly-header h1 {
+    margin: 0;
+    font-size: clamp(27px, 3vw, 39px);
+    line-height: 1.08;
+    letter-spacing: -.035em;
+  }
+
+  .friendly-header p {
+    margin: 9px 0 0;
+    color: rgba(255,255,255,.88);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .input-panel,
+  .editor-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+
+  .input-panel {
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .input-panel label {
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 800;
+  }
+
+  #trackInput {
+    width:100%;
+    box-sizing:border-box;
+    min-height: 360px;
+    padding: 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    background: #fbfdff;
+    color: #0f172a;
+    font: 13px/1.55 Consolas, "Courier New", monospace;
+  }
+
+  #trackInput:focus,
+  #startNumber:focus,
+  .editor-table input:focus,
+  .editor-table select:focus {
+    outline: 3px solid rgba(37,99,235,.15);
+    border-color: var(--primary);
+  }
+
+  .category-settings {
+    margin-top: 18px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: #f8fafc;
+  }
+
+  .category-settings h2 {
+    margin: 0 0 6px;
+    font-size: 19px;
+    color: var(--text);
+  }
+
+  .category-settings p {
+    margin: 0 0 12px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .category-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(150px, 1fr));
+    gap: 10px;
+  }
+
+  .category-item {
+    padding: 11px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: white;
+  }
+
+  .category-item label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .category-item input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font: inherit;
+  }
+
+  .category-color-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .category-color-row input[type="color"] {
+    width: 44px;
+    height: 34px;
+    padding: 2px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+  }
+
+  @media (max-width: 850px) {
+    .category-grid {
+      grid-template-columns: repeat(2, minmax(150px, 1fr));
+    }
+  }
+
+  @media (max-width: 520px) {
+    .category-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+
+  .category-editor {
+    display: grid;
+    gap: 10px;
+  }
+
+  .category-row {
+    display: grid;
+    grid-template-columns: 38px minmax(150px, 1fr) 92px auto;
+    gap: 10px;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: white;
+  }
+
+  .category-order {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .category-order button,
+  .category-remove {
+    padding: 5px 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    background: #f8fafc;
+    color: #334155;
+    cursor: pointer;
+    box-shadow: none;
+  }
+
+  .category-order button {
+    width: 32px;
+    height: 27px;
+    line-height: 1;
+  }
+
+  .category-remove {
+    color: #b42318;
+    background: #fff5f5;
+    border-color: #fecaca;
+  }
+
+  .category-row input[type="text"] {
+    width: 100%;
+    padding: 9px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font: inherit;
+  }
+
+  .category-row input[type="color"] {
+    width: 100%;
+    height: 38px;
+    padding: 2px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+  }
+
+  .category-editor-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+
+  .category-position {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  @media (max-width: 650px) {
+    .category-row {
+      grid-template-columns: 38px 1fr 70px;
+    }
+
+    .category-remove {
+      grid-column: 2 / 4;
+    }
+  }
+
+  .input-help {
+    margin-top: 8px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .option-row {
+    min-height: 46px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface-soft);
+  }
+
+  .option-row input[type="checkbox"] {
+    accent-color: var(--primary);
+  }
+
+  button {
+    transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+  }
+
+  button:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
+  button:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+  }
+
+  .primary,
+  .secondary {
+    padding: 10px 15px;
+    border-radius: 10px;
+    font-size: 14px;
+  }
+
+  .primary {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 6px 14px rgba(37,99,235,.18);
+  }
+
+  .primary:hover:not(:disabled) {
+    background: var(--primary-dark);
+  }
+
+  .secondary {
+    background: #e8eef6;
+    color: #1e293b;
+  }
+
+  .friendly-status {
+    padding: 15px 17px;
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+
+  .friendly-status .status {
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin-top: 11px;
+  }
+
+  .legend span {
+    margin: 0;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: #f8fafc;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .editor-panel {
+    padding: 18px;
+    margin: 16px auto;
+  }
+
+  .editor-panel h2 {
+    color: var(--text);
+    font-size: 21px;
+  }
+
+  .editor-note {
+    color: var(--muted);
+  }
+
+  .editor-table-wrap {
+    border-color: var(--border);
+    border-radius: 12px;
+  }
+
+  .editor-table th {
+    background: #eef3f8;
+    color: #334155;
+    font-size: 12px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+
+  .editor-table tr:nth-child(even) td {
+    background: #fbfdff;
+  }
+
+  .editor-table input,
+  .editor-table select {
+    border-color: #cbd5e1;
+    border-radius: 8px;
+    background: white;
+  }
+
+  .friendly-footer {
+    max-width: 1120px;
+    margin: 16px auto 30px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .friendly-footer strong {
+    color: #334155;
+  }
+
+  @media (max-width: 760px) {
+    .toolbar {
+      margin: 12px;
+    }
+
+    .friendly-header {
+      padding: 20px;
+      border-radius: 17px;
+    }
+
+    .input-panel {
+      padding: 15px;
+    }
+
+    .option-row {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    #startNumber {
+      width: 100% !important;
+    }
+  }
+
+  @media print {
+    .friendly-header,
+    .friendly-status,
+    .friendly-footer {
+      display: none !important;
+    }
+  }
+</style>
+
+
+<style id="v2-ui">
+  .app-shell {
+    max-width: 1180px;
+    margin: 24px auto;
+    padding: 0 16px;
+  }
+
+  .tab-bar {
+    display: flex;
+    gap: 8px;
+    margin: 0 0 16px;
+    padding: 6px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: rgba(255,255,255,.85);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(8px);
+  }
+
+  .tab-button {
+    flex: 1;
+    border: 0;
+    border-radius: 10px;
+    padding: 12px 16px;
+    background: transparent;
+    color: #475569;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .tab-button.active {
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    color: white;
+    box-shadow: 0 6px 16px rgba(37,99,235,.18);
+  }
+
+  .tab-panel {
+    display: none;
+  }
+
+  .tab-panel.active {
+    display: block;
+  }
+
+  .review-toolbar {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) 180px auto auto;
+    gap: 10px;
+    align-items: end;
+    margin-bottom: 14px;
+  }
+
+  .review-toolbar label {
+    display: block;
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .review-toolbar input,
+  .review-toolbar select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    background: white;
+  }
+
+  .review-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 16px;
+    align-items: start;
+  }
+
+  .review-list {
+    display: grid;
+    gap: 10px;
+  }
+
+  .review-card {
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-left: 8px solid var(--card-accent, #64748b);
+    border-radius: 14px;
+    background: white;
+    box-shadow: 0 5px 14px rgba(15,23,42,.05);
+  }
+
+  .review-card.edited {
+    box-shadow: 0 0 0 2px rgba(37,99,235,.12), 0 5px 14px rgba(15,23,42,.05);
+  }
+
+  .review-card-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .review-card-title {
+    font-size: 15px;
+    font-weight: 900;
+    color: #0f172a;
+  }
+
+  .review-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #334155;
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  .review-fields {
+    display: grid;
+    grid-template-columns: 1.3fr 1.1fr 110px 150px;
+    gap: 10px;
+  }
+
+  .review-fields label {
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 800;
+    margin-bottom: 5px;
+  }
+
+  .review-fields input,
+  .review-fields select {
+    width: 100%;
+    padding: 9px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: white;
+  }
+
+  .preview-panel {
+    position: sticky;
+    top: 16px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: white;
+    box-shadow: var(--shadow);
+  }
+
+  .preview-panel h3 {
+    margin: 0 0 12px;
+  }
+
+  .mini-preview {
+    min-height: 300px;
+    border-radius: 18px;
+    background: var(--preview-color, #64748b);
+    color: white;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,.25);
+  }
+
+  .mini-preview .preview-number {
+    font-weight: 900;
+  }
+
+  .mini-preview .preview-code {
+    background: white;
+    color: #111827;
+    border-radius: 12px;
+    padding: 22px 12px;
+    text-align: center;
+    font-weight: 900;
+    letter-spacing: .08em;
+  }
+
+  .mini-preview .preview-meta {
+    text-align: center;
+  }
+
+  .mini-preview .preview-year {
+    font-size: 34px;
+    font-weight: 1000;
+    line-height: 1;
+  }
+
+  .mini-preview .preview-title {
+    margin-top: 10px;
+    font-size: 18px;
+    font-weight: 900;
+  }
+
+  .mini-preview .preview-artist {
+    margin-top: 5px;
+    opacity: .9;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .stat-card {
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: white;
+  }
+
+  .stat-card strong {
+    display: block;
+    font-size: 22px;
+    color: #0f172a;
+  }
+
+  .stat-card span {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .empty-review {
+    padding: 30px;
+    text-align: center;
+    color: var(--muted);
+    border: 1px dashed #cbd5e1;
+    border-radius: 14px;
+    background: rgba(255,255,255,.65);
+  }
+
+  @media (max-width: 900px) {
+    .review-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .preview-panel {
+      position: static;
+    }
+
+    .review-fields {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .review-toolbar {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .review-fields,
+    .review-toolbar {
+      grid-template-columns: 1fr;
+    }
+
+    .tab-bar {
+      flex-direction: column;
+    }
+  }
+
+  @media print {
+    .app-shell,
+    .tab-bar,
+    .tab-panel,
+    .review-panel,
+    .preview-panel {
+      display: none !important;
+    }
+  }
+</style>
+
+</head>
+<body>
+<div class="app-shell">
+  <div class="tab-bar">
+    <button class="tab-button active" id="generateTabButton" onclick="switchTab('generate')">Generate Cards</button>
+    <button class="tab-button" id="reviewTabButton" onclick="switchTab('review')">Review & Edit</button>
+  </div>
+
+  <section class="tab-panel active" id="generateTab">
+    <section class="toolbar">
+  <header class="friendly-header">
+    <h1>Spotify Music Card Generator</h1>
+    <p>Create printable music cards with Spotify Codes, mirrored answers, release years and difficulty levels.</p>
+  </header>
+  <h1>Spotify music game — <span id="cardCount">136</span> cards</h1>
+
+  <div class="input-panel">
+    <h2 style="margin:18px 0 6px;font-size:20px;color:#1f2937;">Track List</h2><label for="trackInput" style="display:block;font-size:16px;font-weight:800;margin-bottom:10px;">🎵 Spotify Track Links</label>
+    <textarea id="trackInput" placeholder="https://open.spotify.com/track/...&#10;https://open.spotify.com/track/...&#10;https://open.spotify.com/track/..." spellcheck="false"></textarea>
+    <div class="input-help">
+      Paste one Spotify track link per line. You can paste dozens or even hundreds of links at once.
+      Spotify URIs and bare 22-character track IDs are also accepted. Duplicate links are removed. Set the starting card number when continuing an existing set. No track list or metadata is stored after the page is closed.
+    </div>
+    <label class="option-row" for="startNumber">
+      Starting card number
+      <input type="number" id="startNumber" min="1" value="1" style="width:110px;padding:6px;border:1px solid #aeb4ba;border-radius:6px;">
+    </label>
+    <label class="option-row">
+      <input type="checkbox" id="randomizeSongs">
+      Randomize song order
+    </label>
+    <section class="category-settings">
+      <h2>Difficulty categories</h2>
+      <p>
+        Add, remove, rename, recolor, or reorder categories. Songs are divided
+        evenly by release year from the first category (newest songs) to the
+        last category (oldest songs).
+      </p>
+
+      <div id="categoryEditor" class="category-editor"></div>
+
+      <div class="category-editor-actions">
+        <button type="button" class="secondary" onclick="addCategory()">+ Add category</button>
+        <button type="button" class="secondary" onclick="resetCategories()">Reset defaults</button>
+      </div>
+    </section>
+
+    <button class="primary" id="generateButton" onclick="generateFromInput()">Generate cards</button>
+    <button class="secondary" onclick="restoreDefaultList()">Restore current list</button>
+  </div>
+
+  <div class="friendly-status"><div><span class="status" id="status">Loading titles and release years with adaptive retries… Years use the earliest strong MusicBrainz title-and-artist match, then TheAudioDB, Spotify, and finally a strict iTunes title-and-artist fallback. Difficulties are divided evenly by release year: newest songs are easiest and oldest songs are expert.</span></div>
+  <div class="legend">
+    <span><i class="dot" style="background:var(--easy)"></i>Easy (Green)</span>
+    <span><i class="dot" style="background:var(--medium)"></i>Medium (Blue)</span>
+    <span><i class="dot" style="background:var(--hard)"></i>Hard (Red)</span>
+    <span><i class="dot" style="background:var(--expert)"></i>Expert (Dark Grey)</span>
+  </div>
+  <div>
+    <button class="primary" onclick="window.print()">Print / Save as PDF</button>
+    <button class="secondary" onclick="clearCache()">Reload metadata</button>
+  </div>
+  <small>
+    Keep this tab open until the status says ready. The first load can take several minutes because the release-year service allows roughly one request per second. Print A4 portrait, 100% scale, backgrounds enabled,
+    headers/footers disabled, double-sided, <strong>flip on long edge</strong>.
+    Backs are mirrored automatically. Years use the earliest matching MusicBrainz release date;
+    verify any card marked “check year”.
+  </small></div>
+</section>
+  </section>
+
+  <section class="tab-panel" id="reviewTab">
+    <section class="editor-panel review-panel" id="editorPanel">
+      <h2>Review & Edit Cards</h2>
+      <p class="editor-note">
+        Search, filter, preview, and override generated card data before printing.
+      </p>
+
+      <div id="reviewStats" class="stats-grid"></div>
+
+      <div class="review-toolbar">
+        <div>
+          <label for="reviewSearch">Search</label>
+          <input id="reviewSearch" type="search" placeholder="Card number, title, artist or year" oninput="renderReviewCards()">
+        </div>
+
+        <div>
+          <label for="reviewCategoryFilter">Category</label>
+          <select id="reviewCategoryFilter" onchange="renderReviewCards()"></select>
+        </div>
+
+        <label class="option-row" style="margin:0;">
+          <input type="checkbox" id="reviewMissingYear" onchange="renderReviewCards()">
+          Missing year
+        </label>
+
+        <label class="option-row" style="margin:0;">
+          <input type="checkbox" id="reviewEditedOnly" onchange="renderReviewCards()">
+          Edited only
+        </label>
+      </div>
+
+      <div class="editor-actions">
+        <button class="primary" onclick="applyCardOverrides()">Apply all changes</button>
+        <button class="secondary" onclick="resetCardOverrides()">Reset generated values</button>
+      </div>
+
+      <div class="review-grid">
+        <div id="reviewList" class="review-list"></div>
+
+        <aside class="preview-panel">
+          <h3>Card Preview</h3>
+          <div id="miniPreview" class="mini-preview">
+            <div class="preview-number">No card selected</div>
+            <div class="preview-code">SPOTIFY CODE</div>
+            <div class="preview-meta">
+              <div class="preview-year">—</div>
+              <div class="preview-title">Select a card</div>
+              <div class="preview-artist"></div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </section>
+</div>
+
+<main id="pages"></main>
+<script>
+const DEFAULT_TRACK_IDS = ["2TWLN4BJqA7jmWvIfrsIM1", "2R84UWGFwZg8XYjZQeQrJj", "4UxMdVVoR68ZS2iCR7bJf0", "5CMln9nwRTrlCfwXoz7cEK", "2o4iWZOFE8kkl0tK66WADw", "1DivBCYuEIHaeD3evYJE16", "2wu9tmhmdwIk0IcCHPndhI", "25brT5xsqdKuoZqvz3Ubrn", "5EcPtaqxmPvgLcB5gRPF2j", "3yxFiZHkQgJmLEyhij30rr", "67wewfYRTUs6OxfmgGfRho", "0omaeI4JjN2g5vHBCZHqUJ", "0uHrMbMv3c78398pIANDqR", "1a2GeLs7aMPvwJOjcVK0Vl", "0GiWi4EkPduFWHQyhiKpRB", "69B6SgxGtxSzeTbl6IRGwP", "48kxfGK5XbO1eW8Cf4Vil7", "5bdBg1Gc6IrDRCFM1BiQx7", "1GEBsLDvJGw7kviySRI6GX", "0cqRj7pUJDkTCEsJkx8snD", "1u8c2t2Cy7UBoG4ArRcF5g", "48lxT5qJF0yYyf2z4wB4xW", "7tW2Md8xOwnKPIYhCqPiU4", "5SaapweQAEx7X1R47ItZ75", "1MWpdDDf3Yk0w6o4oviMFY", "2ZodgwtywVovNUNIcKDpbD", "4GrQPpjaZmBf67b9Uh83T8", "5ZLkc5RY1NM4FtGWEd6HOE", "3pBPHHC2zKRAnSG5mKAcHC", "6epn3r7S14KUqlReYr77hA", "50kpGaPAhYJ3sGmk6vplg0", "5HpyAE2VqYmT5thP5QboGW", "07vM3GM9QrrhGYuIMCBh3C", "5ljuGR6Fv7B2mviKflDoE4", "7M8oLiR9q2He0mnJVLYYYj", "6HfzAzEWhwo19n2jrJnM7k", "3qbb77qMxI5v013fqfRUzc", "72LwJNYsbIBt7QbVf4X67P", "1RBAmptvCgOBmUQorOiT31", "2ytVeoA2wq5lgVHBWQIMoa", "5UKN8Siz4jJvMsEInb9PSG", "2LcmbuYX7tyR4DWy3b273L", "0kINWIY7BToJACjRzIOqsz", "64OgqQLngm2dXl9CYkAGNx", "0ya4rRxJIIF1B0bLpbJrNP", "3v0ouAltce6AySBTYBP3pk", "4RxzgZMbYLLnLYaW00Wv4q", "1buASziRLNHXcTVYFWZ8EK", "024pThriWXJRFgGQuixYs7", "7KNARINQkhCyM2qpx4tMN3", "0q8Ft87t6fIUZdtve5PwKW", "1JzF2beR76cvyy9zgzuMGV", "6g457M17Mjisk9kbqmQMMO", "2IV6ArKIuTpNxqXCCHd0mG", "0kosUz0jePvjiz4ctmR6wL", "2lnzGkdtDj5mtlcOW2yRtG", "63Tl9k1sH8tznn3bqoMuyF", "4A7tc8ZBC1fsJaNErPnWCo", "4T2mvqNOm67uvkCyfIHzPV", "65Q72X0pHDL7umhtunUVZ8", "4RHsbY8e24Z52CQ4SMZzpM", "37UCSVSqiPGdR1DijOFyYY", "6b8Be6ljOzmkOmFslEb23P", "6SKwQghsR8AISlxhcwyA9R", "6UelLqGlWMcVH1E5c4H7lY", "4Dvkj6JhhA12EX05fT7y2e", "4cluDES4hQEUhmXj6TXkSo", "5T7ZFtCcOgkpjxcuaeZbw0", "3f7gYMirBEKuc57218BjOY", "1mXuMM6zjPgjL4asbBsgnt", "455AfCsOhhLPRc68sE01D8", "14iN3o8ptQ8cFVZTEmyQRV", "0ByMNEPAPpOR5H69DVrTNy", "6qn9YLKt13AGvpq9jfO8py", "2yWlGEgEfPot0lv3OAjuG3", "3rUGC1vUpkDG9CZFHMur1t", "52xJxFP6TqMuO4Yt0eOkMz", "4Y8vb1uy9IjM2V1hqvrAid", "600HVBpzF1WfBdaRwbEvLz", "5gB2IrxOCX2j9bMnHKP38i", "3T74kgnbHw8JqkYGJKD4Tl", "5f2TWu6R2YYCJtLQ0fP78H", "0VjIjW4GlUZAMYd2vXMi3b", "7J1uxwnxfQLu4APicE5Rnj", "3BovdzfaX4jb5KFQwoPfAw", "2LlQb7Uoj1kKyGhlkBf9aC", "0SiywuOBRcynK0uKGWdCnn", "1QV6tiMFM6fSOKOGLMHYYg", "0tgVpDi06FyKpA1z0VMD4v", "7qiZfU4dY1lWllzX7mPBI3", "1VdZ0vKfR5jneCmWIUAMxK", "34gCuhDGsG4bRPIf9bb02f", "0oOhTU3RPJOZdegnh5MjFX", "7HPkvsnyQqQ6PmpLk7D7IR", "5as4m1rmKAmL2jbECYkZKB", "4RA0T0I98uoBcWmnU6uOQ1", "2Oaq2Q6JFS1xIXGL9TVryY", "0wMAsL98TGuI6eWUEocd1O", "7D5vAulNfrQV6xEwzgH0OF", "7xkQdy0cy5ymoWT7nedvLz", "7JJmb5XwzOO8jgpou264Ml", "3QGsuHI8jO1Rx4JWLUh9jd", "1vLqigPHwiFnXsfrLMehV1", "42UBPzRMh5yyz0EDPr6fr1", "5N3hjp1WNayUPZrA8kJmJP", "5IVuqXILoxVWvWEPm82Jxr", "2CvOqDpQIMw69cCzWqr5yr", "557un1HgwYMuqfWGSTmnxw", "5QDLhrAOJJdNAmCTJ8xMyW", "3Fcfwhm8oRrBvBZ8KGhtea", "3AJwUDP919kvQ9QcozQPxg", "0FDzzruyVECATHXKHFs9eJ", "4JQdXqUO5tFTSvWIgA5gRD", "6AWDTrLLcEZDFn0qHKwzMW", "5TQtFBmr0dM9VvG6LXvmwI", "28IIAhPoJXM2Q0IRXtGmUf", "1f9X68h6QGh01bD0r4g9DF", "5d0KtdnoPpniNFngV5ehcP", "2rzZ0IGxgrGUAPwrWn80z7", "0b9RNAzGtDRRMQS1cF9HXT", "7uQ7e7nzbtyX87eIYHpj6Z", "2GYHyAoLWpkxLVa4oYTVko", "34dx8DACTJsc3rsJdaEIQw", "4aOqKc3Zdg4m5uK3mqAM8B", "1RkgroVbrTs8gFeHJ4znJt", "00tDSqUMjyOICNNmQSBE8w", "1pyBvrqSmFtD3yUnXNTlJh", "1Sr0JwYtHhuzGgPldwmN7x", "3jFnYU30fibZbOE9y4wPQx", "5fySAmiBZEILTlSwo8n4Wi", "2W3vVFpXCYlazEHZFyL3ue", "70IUWsl6v4II26gg2iBeOi", "5CeKSGsjyGQ0ck2UeMDbBw", "1rfofaqEpACxVEHIZBJe6W", "0TK2YIli7K1leLovkQiNik", "5wANPM4fQCJwkGd4rN57mH"];
+let TRACK_IDS = [];
+const PRELOADED_ARTISTS = {"2TWLN4BJqA7jmWvIfrsIM1": "Kinderen voor Kinderen", "2R84UWGFwZg8XYjZQeQrJj": "Tom Graus", "4UxMdVVoR68ZS2iCR7bJf0": "Kabouter Plop", "5CMln9nwRTrlCfwXoz7cEK": "Vinzzent", "2o4iWZOFE8kkl0tK66WADw": "Marco Borsato", "1DivBCYuEIHaeD3evYJE16": "Nielson", "2wu9tmhmdwIk0IcCHPndhI": "Lustrum U.V.S.V./N.V.V.S.U., Jopke, Roeland Beelen", "25brT5xsqdKuoZqvz3Ubrn": "K3", "5EcPtaqxmPvgLcB5gRPF2j": "Snollebollekes", "3yxFiZHkQgJmLEyhij30rr": "Marco Borsato", "67wewfYRTUs6OxfmgGfRho": "Roxy Dekker", "0omaeI4JjN2g5vHBCZHqUJ": "Roxy Dekker", "0uHrMbMv3c78398pIANDqR": "Joost", "1a2GeLs7aMPvwJOjcVK0Vl": "Acda en de Munnik", "0GiWi4EkPduFWHQyhiKpRB": "Guus Meeuwis", "69B6SgxGtxSzeTbl6IRGwP": "Guus Meeuwis, Vagant", "48kxfGK5XbO1eW8Cf4Vil7": "Bankzitters", "5bdBg1Gc6IrDRCFM1BiQx7": "Bankzitters", "1GEBsLDvJGw7kviySRI6GX": "Taylor Swift", "0cqRj7pUJDkTCEsJkx8snD": "Taylor Swift", "1u8c2t2Cy7UBoG4ArRcF5g": "Taylor Swift", "48lxT5qJF0yYyf2z4wB4xW": "Jaxomy, Agatino Romero, Raffaella Carrà", "7tW2Md8xOwnKPIYhCqPiU4": "Samuel Welten", "5SaapweQAEx7X1R47ItZ75": "Suzan & Freek", "1MWpdDDf3Yk0w6o4oviMFY": "Suzan & Freek", "2ZodgwtywVovNUNIcKDpbD": "Suzan & Freek", "4GrQPpjaZmBf67b9Uh83T8": "Andre Hazes", "5ZLkc5RY1NM4FtGWEd6HOE": "Andre Hazes", "3pBPHHC2zKRAnSG5mKAcHC": "André Hazes Jr.", "6epn3r7S14KUqlReYr77hA": "Justin Bieber, Ludacris", "50kpGaPAhYJ3sGmk6vplg0": "Justin Bieber", "5HpyAE2VqYmT5thP5QboGW": "Antoon", "07vM3GM9QrrhGYuIMCBh3C": "Antoon", "5ljuGR6Fv7B2mviKflDoE4": "Linda Roos & Jessica", "7M8oLiR9q2He0mnJVLYYYj": "Bankzitters", "6HfzAzEWhwo19n2jrJnM7k": "Bankzitters, Roxy Dekker", "3qbb77qMxI5v013fqfRUzc": "Roxy Dekker", "72LwJNYsbIBt7QbVf4X67P": "Turfy Gang, Russo", "1RBAmptvCgOBmUQorOiT31": "Russo, Matthy", "2ytVeoA2wq5lgVHBWQIMoa": "Snelle", "5UKN8Siz4jJvMsEInb9PSG": "Snelle, Maan", "2LcmbuYX7tyR4DWy3b273L": "Goldband", "0kINWIY7BToJACjRzIOqsz": "Maan, Goldband", "64OgqQLngm2dXl9CYkAGNx": "Lil Kleine, Boef", "0ya4rRxJIIF1B0bLpbJrNP": "Lil Kleine, Ronnie Flex", "3v0ouAltce6AySBTYBP3pk": "Gers Pardoel, Sef", "4RxzgZMbYLLnLYaW00Wv4q": "Gers Pardoel", "1buASziRLNHXcTVYFWZ8EK": "BLØF", "024pThriWXJRFgGQuixYs7": "Joost", "7KNARINQkhCyM2qpx4tMN3": "Guus Meeuwis, Vagant", "0q8Ft87t6fIUZdtve5PwKW": "Lil Kleine, Samuel Welten, De Amsterdamse Zomer", "1JzF2beR76cvyy9zgzuMGV": "Antoon, Big2", "6g457M17Mjisk9kbqmQMMO": "Antoon", "2IV6ArKIuTpNxqXCCHd0mG": "Kris Kross Amsterdam, Antoon, Sigourney K", "0kosUz0jePvjiz4ctmR6wL": "Shakira, Burna Boy", "2lnzGkdtDj5mtlcOW2yRtG": "Shakira", "63Tl9k1sH8tznn3bqoMuyF": "Shakira", "4A7tc8ZBC1fsJaNErPnWCo": "Kinderen voor Kinderen", "4T2mvqNOm67uvkCyfIHzPV": "Kinderen voor Kinderen", "65Q72X0pHDL7umhtunUVZ8": "K3", "4RHsbY8e24Z52CQ4SMZzpM": "K3", "37UCSVSqiPGdR1DijOFyYY": "Zara Larsson", "6b8Be6ljOzmkOmFslEb23P": "Bruno Mars", "6SKwQghsR8AISlxhcwyA9R": "Bruno Mars", "6UelLqGlWMcVH1E5c4H7lY": "Harry Styles", "4Dvkj6JhhA12EX05fT7y2e": "Harry Styles", "4cluDES4hQEUhmXj6TXkSo": "One Direction", "5T7ZFtCcOgkpjxcuaeZbw0": "One Direction", "3f7gYMirBEKuc57218BjOY": "Katy Perry, Snoop Dogg", "1mXuMM6zjPgjL4asbBsgnt": "Katy Perry", "455AfCsOhhLPRc68sE01D8": "Katy Perry", "14iN3o8ptQ8cFVZTEmyQRV": "Katy Perry", "0ByMNEPAPpOR5H69DVrTNy": "Rihanna", "6qn9YLKt13AGvpq9jfO8py": "Rihanna, Calvin Harris", "2yWlGEgEfPot0lv3OAjuG3": "Tate McRae, F1 The Album", "3rUGC1vUpkDG9CZFHMur1t": "Tate McRae", "52xJxFP6TqMuO4Yt0eOkMz": "Carolina Gaitán - La Gaita, Mauro Castillo, Adassa, Rhenzy Feliz, Diane Guerrero, Stephanie Beatriz, Encanto - Cast", "4Y8vb1uy9IjM2V1hqvrAid": "Phil Collins", "600HVBpzF1WfBdaRwbEvLz": "Idina Menzel", "5gB2IrxOCX2j9bMnHKP38i": "Rascal Flatts", "3T74kgnbHw8JqkYGJKD4Tl": "Phil Collins", "5f2TWu6R2YYCJtLQ0fP78H": "Will Smith", "0VjIjW4GlUZAMYd2vXMi3b": "The Weeknd", "7J1uxwnxfQLu4APicE5Rnj": "Michael Jackson", "3BovdzfaX4jb5KFQwoPfAw": "Michael Jackson", "2LlQb7Uoj1kKyGhlkBf9aC": "Michael Jackson", "0SiywuOBRcynK0uKGWdCnn": "Lady Gaga", "1QV6tiMFM6fSOKOGLMHYYg": "Lady Gaga", "0tgVpDi06FyKpA1z0VMD4v": "Ed Sheeran", "7qiZfU4dY1lWllzX7mPBI3": "Ed Sheeran", "1VdZ0vKfR5jneCmWIUAMxK": "Ed Sheeran", "34gCuhDGsG4bRPIf9bb02f": "Ed Sheeran", "0oOhTU3RPJOZdegnh5MjFX": "Monique Smit", "7HPkvsnyQqQ6PmpLk7D7IR": "Jan Smit", "5as4m1rmKAmL2jbECYkZKB": "Guus Meeuwis", "4RA0T0I98uoBcWmnU6uOQ1": "Monique Smit, Tim Douwsma", "2Oaq2Q6JFS1xIXGL9TVryY": "De Jeugd Van Tegenwoordig", "0wMAsL98TGuI6eWUEocd1O": "Lange Frans, Baas B", "7D5vAulNfrQV6xEwzgH0OF": "De Jeugd Van Tegenwoordig", "7xkQdy0cy5ymoWT7nedvLz": "Jason Derulo", "7JJmb5XwzOO8jgpou264Ml": "Shawn Mendes", "3QGsuHI8jO1Rx4JWLUh9jd": "Shawn Mendes", "1vLqigPHwiFnXsfrLMehV1": "Sabrina Carpenter", "42UBPzRMh5yyz0EDPr6fr1": "Sabrina Carpenter", "5N3hjp1WNayUPZrA8kJmJP": "Sabrina Carpenter", "5IVuqXILoxVWvWEPm82Jxr": "Beyoncé, JAY-Z", "2CvOqDpQIMw69cCzWqr5yr": "Beyoncé", "557un1HgwYMuqfWGSTmnxw": "Beyoncé", "5QDLhrAOJJdNAmCTJ8xMyW": "BTS", "3Fcfwhm8oRrBvBZ8KGhtea": "Coldplay", "3AJwUDP919kvQ9QcozQPxg": "Coldplay", "0FDzzruyVECATHXKHFs9eJ": "Coldplay", "4JQdXqUO5tFTSvWIgA5gRD": "Swifty Official", "6AWDTrLLcEZDFn0qHKwzMW": "LUNA", "5TQtFBmr0dM9VvG6LXvmwI": "FLEMMING", "28IIAhPoJXM2Q0IRXtGmUf": "FLEMMING", "1f9X68h6QGh01bD0r4g9DF": "Mart Hoogkamer", "5d0KtdnoPpniNFngV5ehcP": "Emma Heesters", "2rzZ0IGxgrGUAPwrWn80z7": "Davina Michelle, Beste Zangers", "0b9RNAzGtDRRMQS1cF9HXT": "Claude", "7uQ7e7nzbtyX87eIYHpj6Z": "S10", "2GYHyAoLWpkxLVa4oYTVko": "Stromae", "34dx8DACTJsc3rsJdaEIQw": "Stromae", "4aOqKc3Zdg4m5uK3mqAM8B": "Nielson", "1RkgroVbrTs8gFeHJ4znJt": "Nielson, BLØF", "00tDSqUMjyOICNNmQSBE8w": "Thijs Boontjes", "1pyBvrqSmFtD3yUnXNTlJh": "Thomas Berge, Jack", "1Sr0JwYtHhuzGgPldwmN7x": "Turfy Gang, LA$$A", "3jFnYU30fibZbOE9y4wPQx": "Kraantje Pappie, MC Jiggy Djé", "5fySAmiBZEILTlSwo8n4Wi": "Bizzey, Jozo, Kraantje Pappie", "2W3vVFpXCYlazEHZFyL3ue": "Froukje", "70IUWsl6v4II26gg2iBeOi": "Froukje", "5CeKSGsjyGQ0ck2UeMDbBw": "Jonna Fraser, Frenna", "1rfofaqEpACxVEHIZBJe6W": "Camila Cabello, Young Thug", "0TK2YIli7K1leLovkQiNik": "Shawn Mendes, Camila Cabello", "5wANPM4fQCJwkGd4rN57mH": "Olivia Rodrigo"};
+const SPOTIFY_METADATA_OVERRIDES = {
+  "63Tl9k1sH8tznn3bqoMuyF": {
+    title: "Waka Waka (This Time for Africa) - K-Mix",
+    artist: "Shakira"
+  }
+};
+
+const OVERRIDES = {
+  // Optional manual corrections:
+  // "spotifyTrackId": { title:"...", artist:"...", year:1987, level:"easy" }
+};
+const DEFAULT_CATEGORIES = [
+  { id: "category-1", label: "Easy", color: "#2eaf5d" },
+  { id: "category-2", label: "Medium", color: "#3498db" },
+  { id: "category-3", label: "Hard", color: "#e74c3c" },
+  { id: "category-4", label: "Expert", color: "#2c3e50" }
+];
+
+let CATEGORY_CONFIG = DEFAULT_CATEGORIES.map(category => ({ ...category }));
+let nextCategoryNumber = 5;
+
+function categoryByKey(key) {
+  return CATEGORY_CONFIG.find(category => category.id === key) ||
+         CATEGORY_CONFIG[0] ||
+         { id: "uncategorized", label: "Uncategorized", color: "#64748b" };
+}
+
+function categoryLabel(key) {
+  return categoryByKey(key).label;
+}
+
+function categoryColor(key) {
+  return categoryByKey(key).color;
+}
+
+function renderCategoryEditor() {
+  const editor = document.getElementById("categoryEditor");
+  if (!editor) return;
+
+  editor.innerHTML = CATEGORY_CONFIG.map((category, index) => `
+    <div class="category-row" data-category-id="${esc(category.id)}">
+      <div class="category-order">
+        <button type="button" title="Move up" onclick="moveCategory(${index}, -1)" ${index === 0 ? "disabled" : ""}>▲</button>
+        <button type="button" title="Move down" onclick="moveCategory(${index}, 1)" ${index === CATEGORY_CONFIG.length - 1 ? "disabled" : ""}>▼</button>
+      </div>
+
+      <div>
+        <input
+          type="text"
+          class="category-name"
+          value="${esc(category.label)}"
+          aria-label="Category name"
+          oninput="updateCategoryFromEditor('${esc(category.id)}')"
+        >
+        <div class="category-position">
+          ${index === 0
+            ? "Newest songs"
+            : (index === CATEGORY_CONFIG.length - 1
+                ? "Oldest songs"
+                : `Position ${index + 1}`)}
+        </div>
+      </div>
+
+      <input
+        type="color"
+        class="category-color"
+        value="${esc(category.color)}"
+        aria-label="Category color"
+        oninput="updateCategoryFromEditor('${esc(category.id)}')"
+      >
+
+      <button
+        type="button"
+        class="category-remove"
+        onclick="removeCategory(${index})"
+        ${CATEGORY_CONFIG.length <= 1 ? "disabled" : ""}
+      >
+        Remove
+      </button>
+    </div>
+  `).join("");
+}
+
+function updateCategoryFromEditor(categoryId) {
+  const row = document.querySelector(`[data-category-id="${categoryId}"]`);
+  const category = CATEGORY_CONFIG.find(item => item.id === categoryId);
+  if (!row || !category) return;
+
+  const name = row.querySelector(".category-name").value.trim();
+  const color = row.querySelector(".category-color").value;
+
+  category.label = name || "Unnamed";
+  category.color = color || "#64748b";
+
+  renderCategoryLegend();
+}
+
+function addCategory() {
+  CATEGORY_CONFIG.push({
+    id: `category-${nextCategoryNumber++}`,
+    label: `Category ${CATEGORY_CONFIG.length + 1}`,
+    color: randomCategoryColor(CATEGORY_CONFIG.length)
+  });
+
+  renderCategoryEditor();
+  renderCategoryLegend();
+}
+
+function removeCategory(index) {
+  if (CATEGORY_CONFIG.length <= 1) return;
+  CATEGORY_CONFIG.splice(index, 1);
+
+  renderCategoryEditor();
+  renderCategoryLegend();
+}
+
+function moveCategory(index, direction) {
+  const target = index + direction;
+  if (target < 0 || target >= CATEGORY_CONFIG.length) return;
+
+  [CATEGORY_CONFIG[index], CATEGORY_CONFIG[target]] =
+    [CATEGORY_CONFIG[target], CATEGORY_CONFIG[index]];
+
+  renderCategoryEditor();
+  renderCategoryLegend();
+}
+
+function resetCategories() {
+  CATEGORY_CONFIG = DEFAULT_CATEGORIES.map(category => ({ ...category }));
+  nextCategoryNumber = 5;
+
+  renderCategoryEditor();
+  renderCategoryLegend();
+}
+
+function randomCategoryColor(index) {
+  const colors = [
+    "#8e44ad", "#16a085", "#d35400", "#c0392b",
+    "#2980b9", "#7f8c8d", "#2c3e50", "#e84393"
+  ];
+  return colors[index % colors.length];
+}
+
+function readCategoryConfig() {
+  document.querySelectorAll(".category-row").forEach(row => {
+    updateCategoryFromEditor(row.dataset.categoryId);
+  });
+
+  if (!CATEGORY_CONFIG.length) {
+    resetCategories();
+  }
+}
+let activeGeneration = 0;
+let currentItems = [];
+let generatedItemsSnapshot = [];
+let currentStartNumber = 1;
+
+function esc(v) {
+  return String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+}
+function spotifyUrl(id) { return `https://open.spotify.com/track/${id}`; }
+function codeUrl(id) { return `https://scannables.scdn.co/uri/plain/png/FFFFFF/black/640/spotify:track:${id}`; }
+
+function recognitionScore(year) {
+  // Lower score = easier. Newer songs are easier; older songs are harder.
+  // Songs without a year are placed at the difficult end.
+  if (!year) return Number.POSITIVE_INFINITY;
+  return -Number(year);
+}
+
+function estimatedLevel(year) {
+  if (!CATEGORY_CONFIG.length) return "uncategorized";
+  if (!year) return CATEGORY_CONFIG[CATEGORY_CONFIG.length - 1].id;
+
+  const currentYear = new Date().getFullYear();
+  const age = Math.max(0, currentYear - Number(year));
+  const approximateIndex = Math.min(
+    CATEGORY_CONFIG.length - 1,
+    Math.floor((age / 60) * CATEGORY_CONFIG.length)
+  );
+
+  return CATEGORY_CONFIG[approximateIndex].id;
+}
+
+function rebalanceLevels(items) {
+  if (!CATEGORY_CONFIG.length) return items;
+
+  // Sort newest to oldest. Missing years are placed last.
+  const sorted = [...items].sort((a, b) => {
+    const yearA = Number(a.year) || -Infinity;
+    const yearB = Number(b.year) || -Infinity;
+    return yearB - yearA ||
+      TRACK_IDS.indexOf(a.id) - TRACK_IDS.indexOf(b.id);
+  });
+
+  const categoryCount = CATEGORY_CONFIG.length;
+  const base = Math.floor(sorted.length / categoryCount);
+  const remainder = sorted.length % categoryCount;
+  let itemIndex = 0;
+
+  CATEGORY_CONFIG.forEach((category, categoryIndex) => {
+    const count = base + (categoryIndex < remainder ? 1 : 0);
+
+    for (let i = 0; i < count && itemIndex < sorted.length; i++) {
+      sorted[itemIndex++].level = category.id;
+    }
+  });
+
+  return items;
+}
+
+function levelCounts(items) {
+  const counts = Object.fromEntries(
+    CATEGORY_CONFIG.map(category => [category.id, 0])
+  );
+
+  items.forEach(item => {
+    counts[item.level] = (counts[item.level] || 0) + 1;
+  });
+
+  return counts;
+}
+
+
+function isValidTrackTitle(value) {
+  const normalized = String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+
+  return !new Set([
+    "",
+    "spotify",
+    "unknown title",
+    "spotify - web player",
+    "spotify – web player",
+    "spotify web player"
+  ]).has(normalized);
+}
+
+function parseRetryAfter(response) {
+  const value = response.headers.get("Retry-After");
+  if (!value) return null;
+
+  const seconds = Number(value);
+  if (Number.isFinite(seconds)) return Math.max(0, seconds * 1000);
+
+  const date = Date.parse(value);
+  return Number.isFinite(date) ? Math.max(0, date - Date.now()) : null;
+}
+
+async function fetchWithAdaptiveRetry(url, options = {}, attempts = 4) {
+  let lastError;
+
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const response = await fetch(url, options);
+      if (response.ok) return response;
+
+      lastError = new Error(`HTTP ${response.status}`);
+      const retriable =
+        response.status === 408 ||
+        response.status === 429 ||
+        response.status >= 500;
+
+      if (!retriable) throw lastError;
+
+      const waitMs =
+        parseRetryAfter(response) ??
+        Math.min(12000, 1500 * (2 ** i));
+
+      await sleep(waitMs);
+    } catch (error) {
+      lastError = error;
+      if (i === attempts - 1) break;
+      await sleep(Math.min(12000, 1500 * (2 ** i)));
+    }
+  }
+
+  throw lastError || new Error("Request failed");
+}
+
+async function fetchSpotify(id) {
+  const metadataOverride = SPOTIFY_METADATA_OVERRIDES[id];
+  if (metadataOverride) return { ...metadataOverride };
+  const r = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(spotifyUrl(id))}`);
+  if (!r.ok) throw new Error(`Spotify ${r.status}`);
+  const d = await r.json();
+
+  let title = String(d.title || "").trim();
+  let artist = String(d.author_name || "").trim();
+
+  // Some Spotify oEmbed responses contain a combined label rather than author_name.
+  const combinedPatterns = [
+    /^(.*?)\s+[–—-]\s+song and lyrics by\s+(.+?)(?:\s*\|\s*Spotify)?$/i,
+    /^(.*?)\s+[–—-]\s+(.+?)(?:\s*\|\s*Spotify)?$/i
+  ];
+  if (!artist) {
+    for (const pattern of combinedPatterns) {
+      const m = title.match(pattern);
+      if (m) {
+        title = m[1].trim();
+        artist = m[2].trim();
+        break;
+      }
+    }
+  }
+
+  title = title.replace(/\s*\|\s*Spotify\s*$/i, "").trim();
+
+  if (!artist || !title || title === "Unknown title") {
+    const direct = await fetchSpotifyPageMetadata(id);
+    if (direct.title) title = direct.title;
+    if (direct.artist) artist = direct.artist;
+  }
+
+  return { title: title || "Unknown title", artist };
+}
+
+
+async function fetchSpotifyPageMetadata(id) {
+  const urls = [
+    `https://r.jina.ai/http://open.spotify.com/track/${id}`,
+    `https://r.jina.ai/http://open.spotify.com/embed/track/${id}`
+  ];
+
+  for (const url of urls) {
+    try {
+      const r = await fetchWithAdaptiveRetry(url, {}, 4);
+      const body = await r.text();
+
+      const patterns = [
+        /^Title:\s*(.+?)\s*[-–—]\s*song and lyrics by\s+(.+?)(?:\s*\|\s*Spotify)?$/im,
+        /^Title:\s*(.+?)\s*[-–—]\s*(.+?)(?:\s*\|\s*Spotify)?$/im,
+        /<title>\s*(.+?)\s*[-–—]\s*song and lyrics by\s+(.+?)(?:\s*\|\s*Spotify)?\s*<\/title>/i
+      ];
+
+      for (const pattern of patterns) {
+        const m = body.match(pattern);
+        if (!m) continue;
+
+        const parsedTitle = String(m[1] || "").trim();
+        const parsedArtist = String(m[2] || "")
+          .replace(/\s*\|\s*Spotify\s*$/i, "")
+          .trim();
+
+        if (isValidTrackTitle(parsedTitle)) {
+          return { title: parsedTitle, artist: parsedArtist };
+        }
+      }
+    } catch (_) {}
+  }
+
+  return { title: "", artist: "" };
+}
+
+async function fetchJsonWithRetry(url, attempts=4) {
+  const response = await fetchWithAdaptiveRetry(
+    url,
+    { headers: { "Accept": "application/json" } },
+    attempts
+  );
+  return await response.json();
+}
+
+function collectYears(data) {
+  const years = [];
+  for (const rec of (data.recordings || [])) {
+    const first = String(rec["first-release-date"] || "").match(/^(\d{4})/);
+    if (first) years.push(Number(first[1]));
+    for (const rel of (rec.releases || [])) {
+      const m = String(rel.date || "").match(/^(\d{4})/);
+      if (m) years.push(Number(m[1]));
+    }
+  }
+  for (const rg of (data["release-groups"] || [])) {
+    const m = String(rg["first-release-date"] || "").match(/^(\d{4})/);
+    if (m) years.push(Number(m[1]));
+  }
+  const now = new Date().getFullYear();
+  return years.filter(y => y >= 1900 && y <= now);
+}
+
+function normalizeText(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\([^)]*\)|\[[^\]]*\]/g, " ")
+    .replace(/\b(remaster(ed)?|radio edit|single version|album version|live|acoustic|club mix|extended mix|original mix|k mix|mix|edit|version)\b.*$/i, " ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
+function artistNamesFromRecording(rec) {
+  return (rec["artist-credit"] || []).map(c => {
+    if (typeof c === "string") return c;
+    return c.name || (c.artist && c.artist.name) || "";
+  }).filter(Boolean);
+}
+
+function recordingArtistString(rec) {
+  return artistNamesFromRecording(rec).join(" ").trim();
+}
+
+function extractYear(value) {
+  const m = String(value || "").match(/^(\d{4})/);
+  return m ? Number(m[1]) : null;
+}
+
+function titleMatchScore(expected, actual) {
+  const e = normalizeText(expected);
+  const a = normalizeText(actual);
+  if (!e || !a) return 0;
+  if (e === a) return 100;
+  if (a.startsWith(e) || e.startsWith(a)) return 85;
+  if (a.includes(e) || e.includes(a)) return 70;
+  const eWords = new Set(e.split(" "));
+  const aWords = new Set(a.split(" "));
+  const common = [...eWords].filter(w => aWords.has(w)).length;
+  return Math.round((common / Math.max(eWords.size, aWords.size)) * 60);
+}
+
+function artistMatchScore(expected, rec) {
+  const expectedNorm = normalizeText(expected);
+  if (!expectedNorm) return 0;
+
+  const names = artistNamesFromRecording(rec).map(normalizeText);
+  const combined = normalizeText(recordingArtistString(rec));
+
+  if (names.some(n => n === expectedNorm)) return 100;
+  if (combined === expectedNorm) return 100;
+  if (names.some(n => n.includes(expectedNorm) || expectedNorm.includes(n))) return 85;
+  if (combined.includes(expectedNorm) || expectedNorm.includes(combined)) return 75;
+
+  const expectedParts = expectedNorm.split(/\s+/);
+  const combinedWords = new Set(combined.split(/\s+/));
+  const common = expectedParts.filter(w => combinedWords.has(w)).length;
+  return Math.round((common / Math.max(expectedParts.length, 1)) * 60);
+}
+
+function recordingYear(rec) {
+  const first = extractYear(rec["first-release-date"]);
+  if (first) return first;
+
+  const releaseYears = (rec.releases || [])
+    .map(r => extractYear(r.date))
+    .filter(Boolean);
+
+  return releaseYears.length ? Math.min(...releaseYears) : null;
+}
+
+
+
+async function fetchTheAudioDBReleaseYear(title, artist) {
+  try {
+    const url =
+      `https://www.theaudiodb.com/api/v1/json/2/searchtrack.php` +
+      `?s=${encodeURIComponent(artist)}&t=${encodeURIComponent(title)}`;
+
+    const r = await fetch(url);
+    if (!r.ok) return null;
+
+    const data = await r.json();
+    const tracks = data.track || data.tracks || [];
+    if (!Array.isArray(tracks) || !tracks.length) return null;
+
+    const expectedTitle = normalizeText(title);
+    const expectedArtist = normalizeText(artist);
+
+    const candidates = tracks.map(track => {
+      const actualTitle =
+        track.strTrack || track.strTrackName || track.strSong || "";
+      const actualArtist =
+        track.strArtist || track.strArtistName || "";
+
+      const titleScore = titleMatchScore(expectedTitle, actualTitle);
+
+      const artistNorm = normalizeText(actualArtist);
+      let artistScore = 0;
+      if (artistNorm === expectedArtist) artistScore = 100;
+      else if (
+        artistNorm.includes(expectedArtist) ||
+        expectedArtist.includes(artistNorm)
+      ) artistScore = 85;
+
+      const possibleYears = [
+        track.intYearReleased,
+        track.intYear,
+        track.strYear,
+        track.strReleaseDate,
+        track.strAlbumReleaseDate
+      ]
+        .map(extractYear)
+        .filter(Boolean);
+
+      return {
+        year: possibleYears.length ? Math.min(...possibleYears) : null,
+        total: titleScore * 0.6 + artistScore * 0.4
+      };
+    })
+    .filter(item => item.year && item.total >= 88)
+    .sort((a, b) => b.total - a.total || a.year - b.year);
+
+    return candidates.length ? candidates[0].year : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+async function fetchSpotifyReleaseYear(id) {
+  // Spotify does not expose the release date through oEmbed. This fallback
+  // reads the public Spotify track page through a text proxy and extracts
+  // Spotify's album/track release year.
+  const urls = [
+    `https://r.jina.ai/http://open.spotify.com/track/${id}`,
+    `https://r.jina.ai/http://open.spotify.com/embed/track/${id}`
+  ];
+
+  const patterns = [
+    /"release_date"\s*:\s*"(\d{4})(?:-\d{2}-\d{2})?"/i,
+    /"datePublished"\s*:\s*"(\d{4})(?:-\d{2}-\d{2})?"/i,
+    /\brelease date\s*[:\-]\s*(\d{4})(?:-\d{2}-\d{2})?/i,
+    /\breleased\s*[:\-]\s*(\d{4})(?:-\d{2}-\d{2})?/i,
+    /\bfirst released\s*[:\-]\s*(\d{4})/i
+  ];
+
+  for (const url of urls) {
+    try {
+      const r = await fetch(url);
+      if (!r.ok) continue;
+      const body = await r.text();
+      for (const pattern of patterns) {
+        const m = body.match(pattern);
+        if (m) {
+          const year = Number(m[1]);
+          const current = new Date().getFullYear();
+          if (year >= 1900 && year <= current) return year;
+        }
+      }
+    } catch (_) {}
+  }
+  return null;
+}
+
+
+async function fetchITunesReleaseYear(title, artist) {
+  try {
+    const term = `${title} ${artist}`.trim();
+    const url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=song&limit=25`;
+    const r = await fetch(url);
+    if (!r.ok) return null;
+    const data = await r.json();
+
+    const expectedTitle = normalizeText(title);
+    const expectedArtist = normalizeText(artist);
+
+    const candidates = (data.results || []).map(item => {
+      const titleScore = titleMatchScore(expectedTitle, item.trackName || "");
+      const artistActual = normalizeText(item.artistName || "");
+      let artistScore = 0;
+      if (artistActual === expectedArtist) artistScore = 100;
+      else if (artistActual.includes(expectedArtist) || expectedArtist.includes(artistActual)) artistScore = 80;
+
+      const year = extractYear(item.releaseDate);
+      return {
+        year,
+        total: titleScore * 0.6 + artistScore * 0.4
+      };
+    }).filter(x => x.year && x.total >= 90)
+      .sort((a,b) => b.total - a.total);
+
+    return candidates.length ? candidates[0].year : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+async function fetchMusicBrainzMetadata(title, artist) {
+  const cleanTitle = String(title || "")
+    .replace(
+      /\s*[-–—]\s*(?:\d{4}\s*)?(?:remaster(?:ed)?|radio edit|single version|album version|live.*|acoustic.*|club mix|extended mix|original mix|k-mix|mix|edit|version)$/i,
+      ""
+    )
+    .trim();
+  const cleanArtist = String(artist || "").trim();
+
+  // Search using BOTH the Spotify title and the verified Spotify artist.
+  const strictQuery =
+    `recording:"${cleanTitle.replaceAll('"','')}" AND artist:"${cleanArtist.replaceAll('"','')}"`;
+
+  const url =
+    `https://musicbrainz.org/ws/2/recording/?query=${encodeURIComponent(strictQuery)}&fmt=json&limit=50`;
+
+  const data = await fetchJsonWithRetry(url);
+  const candidates = (data.recordings || [])
+    .map(rec => {
+      const titleScore = titleMatchScore(cleanTitle, rec.title);
+      const artistScore = artistMatchScore(cleanArtist, rec);
+      const mbScore = Number(rec.score || 0);
+      const year = recordingYear(rec);
+      return {
+        rec,
+        titleScore,
+        artistScore,
+        mbScore,
+        year,
+        total: titleScore * 0.5 + artistScore * 0.4 + mbScore * 0.1
+      };
+    })
+    .filter(x =>
+      x.year &&
+      x.titleScore >= 85 &&
+      x.artistScore >= 85
+    );
+
+  if (candidates.length) {
+    const bestConfidence = Math.max(...candidates.map(x => x.total));
+
+    // Keep only high-confidence matches, then choose the earliest release.
+    // This avoids selecting a newer remaster or compilation release.
+    const strongMatches = candidates
+      .filter(x => x.total >= bestConfidence - 8)
+      .sort((a, b) =>
+        a.year - b.year ||
+        b.total - a.total
+      );
+
+    const best = strongMatches[0];
+    return {
+      artist: cleanArtist,
+      year: best.year,
+      matchedTitle: best.rec.title,
+      matchedArtist: recordingArtistString(best.rec),
+      confidence: Math.round(best.total)
+    };
+  }
+
+  // Do not fall back to title-only searches, because those caused incorrect years.
+  return {
+    artist: cleanArtist,
+    year: null,
+    confidence: 0
+  };
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r,ms)); }
+
+async function resolveAll(runId = ++activeGeneration) {
+  const out = [];
+  for (let i=0; i<TRACK_IDS.length; i++) {
+    if (runId !== activeGeneration) return;
+    const id = TRACK_IDS[i];
+    document.getElementById("status").textContent = `Resolving ${i+1} of ${TRACK_IDS.length}…`;
+    let item = {
+      artist: PRELOADED_ARTISTS[id] || "",
+      ...(OVERRIDES[id] || {})
+    };
+    try {
+      if (!isValidTrackTitle(item.title) || !item.artist || item.artist === "Unknown artist") {
+        const spotifyMeta = await fetchSpotify(id);
+        if (isValidTrackTitle(spotifyMeta.title)) item.title = spotifyMeta.title;
+        if (spotifyMeta.artist) item.artist = spotifyMeta.artist;
+      }
+
+      if (!isValidTrackTitle(item.title)) {
+        item.title = "Track title unavailable";
+      }
+
+      if (
+        item.title !== "Track title unavailable" &&
+        item.artist &&
+        item.artist !== "Unknown artist" &&
+        !item.year
+      ) {
+        const verifiedArtist = PRELOADED_ARTISTS[id] || item.artist || "";
+        const mbMeta = await fetchMusicBrainzMetadata(item.title, verifiedArtist);
+        item.artist = verifiedArtist;
+        if (!item.year && mbMeta.year) {
+          item.year = mbMeta.year;
+          item.yearSource = "original release";
+          item.yearConfidence = mbMeta.confidence;
+          item.matchedTitle = mbMeta.matchedTitle;
+          item.matchedArtist = mbMeta.matchedArtist;
+        }
+
+        // If no strict title + artist match exists, use Spotify's displayed
+        // album/track release year as a fallback instead of leaving it blank.
+        if (!item.year) {
+          await sleep(750);
+          const audioDbYear = await fetchTheAudioDBReleaseYear(
+            item.title,
+            verifiedArtist
+          );
+          if (audioDbYear) {
+            item.year = audioDbYear;
+            item.yearSource = "TheAudioDB";
+          }
+        }
+
+        if (!item.year) {
+          await sleep(750);
+          const spotifyYear = await fetchSpotifyReleaseYear(id);
+          if (spotifyYear) {
+            item.year = spotifyYear;
+            item.yearSource = "Spotify";
+          }
+        }
+
+        if (!item.year) {
+          await sleep(750);
+          const iTunesYear = await fetchITunesReleaseYear(
+            item.title,
+            verifiedArtist
+          );
+          if (iTunesYear) {
+            item.year = iTunesYear;
+            item.yearSource = "iTunes";
+          }
+        }
+        await sleep(2000);
+      }
+
+      if (!item.artist) item.artist = "Artist not found";
+    } catch (e) {
+      item.error = String(e.message || e);
+    }
+    item.level = item.level || estimatedLevel(item.year);
+    out.push({ id, ...item });
+    rebalanceLevels(out);
+    render(out, false);
+  }
+  if (runId !== activeGeneration) return;
+  rebalanceLevels(out);
+  currentItems = out;
+  generatedItemsSnapshot = out.map(item => ({ ...item }));
+  render(out, true);
+  renderEditor(out);
+  document.getElementById('reviewTabButton').disabled = false;
+  const uncertain = out.filter(x => !x.year).length;
+  const counts = levelCounts(out);
+  document.getElementById("status").innerHTML =
+    `Ready — ${CATEGORY_CONFIG.map(category =>
+      `${esc(category.label)} ${counts[category.id] || 0}`
+    ).join(", ")}` +
+    (uncertain ? ` — <span class="warning">${uncertain} year(s) still unavailable</span>` : "");
+}
+
+function frontCard(item, n) {
+  return `<article class="card" style="--level:${categoryColor(item.level)}">
+    <span class="number">#${String(currentStartNumber + n - 1).padStart(3,"0")}</span>
+    <span class="level-name">${esc(categoryLabel(item.level))}</span>
+    <div class="code-box"><img src="${codeUrl(item.id)}" alt="Spotify Code ${n}"></div>
+  </article>`;
+}
+function backCard(item, n) {
+  if (!item) return `<article class="card empty"></article>`;
+  const year = item.year || "?";
+  return `<article class="card answer" style="--level:${categoryColor(item.level)}">
+    <span class="number">#${String(currentStartNumber + n - 1).padStart(3,"0")}</span>
+    <span class="level-name">${esc(categoryLabel(item.level))}</span>
+    <div class="year">${esc(year)}</div>
+    <div class="title">${esc(item.title || "Loading…")}</div>
+    <div class="artist">${esc(item.artist || "")}</div>
+    ${!item.year
+      ? '<div class="lookup">release year unavailable</div>'
+      : ''}
+  </article>`;
+}
+function blank() { return `<article class="card empty"></article>`; }
+
+function render(items, complete) {
+  const pages = document.getElementById("pages");
+  let html = "";
+  for (let start=0; start<TRACK_IDS.length; start+=12) {
+    const ids = TRACK_IDS.slice(start,start+12);
+    const chunk = ids.map(id => items.find(x => x.id===id) || {id, title:"Loading…", artist:"", year:null, level:"medium"});
+    while (chunk.length < 12) chunk.push(null);
+
+    html += `<section class="sheet front-sheet">`;
+    chunk.forEach((item, idx) => {
+      html += item ? frontCard(item, start+idx+1) : blank();
+    });
+    html += `</section>`;
+
+    // Mirror columns in each row for long-edge duplex printing:
+    // [1,2,3] becomes [3,2,1], while row order remains unchanged.
+    const mirrored = [];
+    for (let r=0; r<4; r++) {
+      const row = chunk.slice(r*3, r*3+3);
+      mirrored.push(row[2], row[1], row[0]);
+    }
+    html += `<section class="sheet back-sheet">`;
+    mirrored.forEach(item => {
+      if (!item) html += blank();
+      else {
+        const originalIndex = chunk.indexOf(item);
+        html += backCard(item, start+originalIndex+1);
+      }
+    });
+    html += `</section>`;
+  }
+  pages.innerHTML = html;
+}
+
+
+
+function renderCategoryLegend() {
+  const legend = document.querySelector(".legend");
+  if (!legend) return;
+
+  legend.innerHTML = CATEGORY_CONFIG.map(category => `
+    <span>
+      <i class="dot" style="background:${esc(category.color)}"></i>
+      ${esc(category.label)}
+    </span>
+  `).join("");
+}
+
+function parseTrackIds(value) {
+  const tokens = String(value || "").split(/\s+/).filter(Boolean);
+  const ids = [];
+
+  for (const token of tokens) {
+    let id = null;
+
+    const urlMatch = token.match(/open\.spotify\.com\/track\/([A-Za-z0-9]{22})/i);
+    const uriMatch = token.match(/^spotify:track:([A-Za-z0-9]{22})$/i);
+    const bareMatch = token.match(/^([A-Za-z0-9]{22})$/);
+
+    if (urlMatch) id = urlMatch[1];
+    else if (uriMatch) id = uriMatch[1];
+    else if (bareMatch) id = bareMatch[1];
+
+    if (id && !ids.includes(id)) ids.push(id);
+  }
+  return ids;
+}
+
+function updateCardCount() {
+  document.getElementById("cardCount").textContent = String(TRACK_IDS.length);
+}
+
+
+function shuffleArray(values) {
+  const shuffled = [...values];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+function generateFromInput() {
+  const input = document.getElementById("trackInput");
+  const ids = parseTrackIds(input.value);
+
+  if (!ids.length) {
+    document.getElementById("status").innerHTML =
+      '<span class="warning">No valid Spotify track links were found.</span>';
+    return;
+  }
+
+  readCategoryConfig();
+  renderCategoryLegend();
+
+  const shouldRandomize = document.getElementById("randomizeSongs").checked;
+  const startNumberInput = document.getElementById("startNumber");
+  const parsedStartNumber = Number.parseInt(startNumberInput.value, 10);
+  currentStartNumber = Number.isFinite(parsedStartNumber) && parsedStartNumber > 0
+    ? parsedStartNumber
+    : 1;
+  startNumberInput.value = String(currentStartNumber);
+
+  TRACK_IDS = shouldRandomize ? shuffleArray(ids) : ids;
+  updateCardCount();
+  document.getElementById("pages").innerHTML = "";
+  currentItems = [];
+  generatedItemsSnapshot = [];
+  renderEditor([]);
+  document.getElementById("status").textContent =
+    `Starting generation for ${TRACK_IDS.length} cards, starting at #${currentStartNumber}${shouldRandomize ? ' in random order' : ''}…`;
+
+  const runId = ++activeGeneration;
+  render([], false);
+  resolveAll(runId);
+}
+
+function restoreDefaultList() {
+  const input = document.getElementById("trackInput");
+  input.value = DEFAULT_TRACK_IDS
+    .map(id => `https://open.spotify.com/track/${id}`)
+    .join("\n");
+  generateFromInput();
+}
+
+function initializeTrackInput() {
+  const input = document.getElementById("trackInput");
+  input.value = "";
+  TRACK_IDS = [];
+  updateCardCount();
+}
+
+
+
+function switchTab(tabName) {
+  const generateActive = tabName === "generate";
+
+  document.getElementById("generateTab").classList.toggle("active", generateActive);
+  document.getElementById("reviewTab").classList.toggle("active", !generateActive);
+  document.getElementById("generateTabButton").classList.toggle("active", generateActive);
+  document.getElementById("reviewTabButton").classList.toggle("active", !generateActive);
+
+  if (!generateActive) {
+    renderReviewCards();
+  }
+}
+
+function populateReviewCategoryFilter() {
+  const select = document.getElementById("reviewCategoryFilter");
+  if (!select) return;
+
+  const current = select.value;
+  select.innerHTML =
+    '<option value="">All categories</option>' +
+    CATEGORY_CONFIG.map(category =>
+      `<option value="${esc(category.id)}">${esc(category.label)}</option>`
+    ).join("");
+
+  if ([...select.options].some(option => option.value === current)) {
+    select.value = current;
+  }
+}
+
+function renderReviewStats() {
+  const stats = document.getElementById("reviewStats");
+  if (!stats) return;
+
+  const missingYears = currentItems.filter(item => !item.year).length;
+  const edited = currentItems.filter(item => item.manualOverride).length;
+
+  const cards = [
+    { value: currentItems.length, label: "Cards" },
+    { value: missingYears, label: "Missing years" },
+    { value: edited, label: "Edited cards" }
+  ];
+
+  CATEGORY_CONFIG.forEach(category => {
+    cards.push({
+      value: currentItems.filter(item => item.level === category.id).length,
+      label: category.label
+    });
+  });
+
+  stats.innerHTML = cards.map(card => `
+    <div class="stat-card">
+      <strong>${esc(card.value)}</strong>
+      <span>${esc(card.label)}</span>
+    </div>
+  `).join("");
+}
+
+function filteredReviewItems() {
+  const query = String(document.getElementById("reviewSearch")?.value || "")
+    .trim()
+    .toLowerCase();
+
+  const category = document.getElementById("reviewCategoryFilter")?.value || "";
+  const missingYear = document.getElementById("reviewMissingYear")?.checked;
+  const editedOnly = document.getElementById("reviewEditedOnly")?.checked;
+
+  return currentItems.filter((item, index) => {
+    const cardNumber = currentStartNumber + index;
+    const haystack = `${cardNumber} ${item.title || ""} ${item.artist || ""} ${item.year || ""}`.toLowerCase();
+
+    return (!query || haystack.includes(query)) &&
+      (!category || item.level === category) &&
+      (!missingYear || !item.year) &&
+      (!editedOnly || item.manualOverride);
+  });
+}
+
+function renderReviewCards() {
+  const list = document.getElementById("reviewList");
+  if (!list) return;
+
+  populateReviewCategoryFilter();
+  renderReviewStats();
+
+  if (!currentItems.length) {
+    list.innerHTML = '<div class="empty-review">Generate cards first to review and edit them here.</div>';
+    return;
+  }
+
+  const filtered = filteredReviewItems();
+
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty-review">No cards match the current filters.</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(item => {
+    const index = currentItems.indexOf(item);
+    const number = currentStartNumber + index;
+
+    return `
+      <article
+        class="review-card ${item.manualOverride ? "edited" : ""}"
+        style="--card-accent:${categoryColor(item.level)}"
+        data-id="${esc(item.id)}"
+        onclick="showMiniPreview('${esc(item.id)}')"
+      >
+        <div class="review-card-header">
+          <div class="review-card-title">Card #${String(number).padStart(3, "0")}</div>
+          <div class="review-badge">${esc(categoryLabel(item.level))}</div>
+        </div>
+
+        <div class="review-fields">
+          <div>
+            <label>Title</label>
+            <input class="edit-title" value="${esc(item.title || "")}" onclick="event.stopPropagation()">
+          </div>
+
+          <div>
+            <label>Artist</label>
+            <input class="edit-artist" value="${esc(item.artist || "")}" onclick="event.stopPropagation()">
+          </div>
+
+          <div>
+            <label>Year</label>
+            <input
+              class="edit-year"
+              type="number"
+              min="1900"
+              max="${new Date().getFullYear()}"
+              value="${esc(item.year || "")}"
+              onclick="event.stopPropagation()"
+            >
+          </div>
+
+          <div>
+            <label>Category</label>
+            <select class="edit-level" onclick="event.stopPropagation()">
+              ${CATEGORY_CONFIG.map(category =>
+                `<option value="${category.id}" ${item.level === category.id ? "selected" : ""}>
+                  ${esc(category.label)}
+                </option>`
+              ).join("")}
+            </select>
+          </div>
+        </div>
+      </article>
+    `;
+  }).join("");
+}
+
+function showMiniPreview(itemId) {
+  const item = currentItems.find(card => card.id === itemId);
+  const preview = document.getElementById("miniPreview");
+  if (!item || !preview) return;
+
+  const index = currentItems.indexOf(item);
+  const number = currentStartNumber + index;
+
+  preview.style.setProperty("--preview-color", categoryColor(item.level));
+  preview.querySelector(".preview-number").textContent =
+    `#${String(number).padStart(3, "0")} · ${categoryLabel(item.level)}`;
+  preview.querySelector(".preview-year").textContent = item.year || "—";
+  preview.querySelector(".preview-title").textContent = item.title || "Untitled";
+  preview.querySelector(".preview-artist").textContent = item.artist || "";
+}
+
+function renderEditor(items) {
+  currentItems = items;
+  populateReviewCategoryFilter();
+  renderReviewStats();
+  renderReviewCards();
+}
+
+function applyCardOverrides() {
+  const cards = [...document.querySelectorAll("#reviewList .review-card")];
+  const byId = new Map(currentItems.map(item => [item.id, item]));
+
+  cards.forEach(card => {
+    const item = byId.get(card.dataset.id);
+    if (!item) return;
+
+    const title = card.querySelector(".edit-title").value.trim();
+    const artist = card.querySelector(".edit-artist").value.trim();
+    const yearRaw = card.querySelector(".edit-year").value.trim();
+    const level = card.querySelector(".edit-level").value;
+
+    item.title = title || "Track title unavailable";
+    item.artist = artist || "Artist unavailable";
+    item.year = yearRaw ? Number(yearRaw) : null;
+    item.level = level;
+    item.manualOverride = true;
+  });
+
+  render(currentItems, true);
+  renderReviewCards();
+  document.getElementById("status").textContent =
+    `Overrides applied to ${currentItems.length} cards.`;
+}
+
+function resetCardOverrides() {
+  currentItems = generatedItemsSnapshot.map(item => ({ ...item }));
+  render(currentItems, true);
+  renderEditor(currentItems);
+  document.getElementById("status").textContent =
+    "Manual overrides reset to the generated values.";
+}
+
+function clearCache() {
+  generateFromInput();
+}
+
+initializeTrackInput();
+renderCategoryEditor();
+readCategoryConfig();
+renderCategoryLegend();
+render([], false);
+if (TRACK_IDS.length) {
+  resolveAll();
+} else {
+  document.getElementById("status").textContent =
+    "Paste Spotify track links above and click 'Generate cards'.";
+}
+</script>
+<footer class="friendly-footer">
+  Created by <strong>Harm Hoogeveen</strong>
+</footer>
+</body>
+</html>
