@@ -772,6 +772,228 @@ html,body { margin:0; background:#e8eaed; color:var(--ink); font-family:Arial,He
   }
 </style>
 
+
+<style id="generation-progress-ui">
+  .generation-progress{margin-top:14px;padding:14px;border:1px solid var(--border);border-radius:14px;background:#f8fafc}
+  .generation-progress[hidden]{display:none}
+  .generation-progress-header{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:8px}
+  .generation-progress-title{font-weight:900;color:#0f172a}
+  .generation-progress-count{font-size:13px;font-weight:800;color:var(--muted)}
+  .generation-progress-track{width:100%;height:16px;overflow:hidden;border-radius:999px;background:#dbe4ef;box-shadow:inset 0 1px 2px rgba(15,23,42,.10)}
+  .generation-progress-fill{width:0%;height:100%;border-radius:inherit;background:linear-gradient(90deg,#2563eb,#7c3aed);transition:width .25s ease}
+  .generation-progress-message{margin-top:8px;font-size:13px;color:var(--muted);line-height:1.4}
+  .generation-progress.complete .generation-progress-fill{background:linear-gradient(90deg,#16a34a,#22c55e)}
+  .generation-progress.error .generation-progress-fill{background:linear-gradient(90deg,#dc2626,#ef4444)}
+  @media print{.generation-progress{display:none!important}}
+</style>
+
+
+<style id="v2-1-cleanup">
+  .card-settings {
+    margin-top: 18px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: #f8fafc;
+  }
+
+  .card-settings h2 {
+    margin: 0 0 12px;
+    font-size: 19px;
+    color: var(--text);
+  }
+
+  .card-settings-grid {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) minmax(240px, 1fr);
+    gap: 12px;
+  }
+
+  .field-group,
+  .checkbox-card {
+    min-height: 104px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: white;
+  }
+
+  .field-group label {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text);
+  }
+
+  .field-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    background: white;
+    font: inherit;
+  }
+
+  .field-group small,
+  .checkbox-card small {
+    display: block;
+    margin-top: 7px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .checkbox-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    cursor: pointer;
+  }
+
+  .checkbox-card input {
+    width: 19px;
+    height: 19px;
+    margin-top: 2px;
+    accent-color: var(--primary);
+    flex: 0 0 auto;
+  }
+
+  .checkbox-card strong {
+    display: block;
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  .generate-actions {
+    display: flex;
+    gap: 9px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+
+  .generate-actions button {
+    min-height: 42px;
+  }
+
+  @media (max-width: 720px) {
+    .card-settings-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .generate-actions {
+      flex-direction: column;
+    }
+
+    .generate-actions button {
+      width: 100%;
+    }
+  }
+</style>
+
+
+<style id="generation-lock-ui">
+  body.generation-locked {
+    overflow: hidden;
+  }
+
+  .generation-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, .72);
+    backdrop-filter: blur(6px);
+  }
+
+  .generation-overlay[hidden] {
+    display: none;
+  }
+
+  .generation-overlay-card {
+    width: min(460px, 100%);
+    padding: 28px;
+    border-radius: 20px;
+    background: white;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, .28);
+    text-align: center;
+  }
+
+  .generation-overlay-card h2 {
+    margin: 14px 0 8px;
+    font-size: 26px;
+    color: #0f172a;
+  }
+
+  .generation-overlay-card p {
+    margin: 0;
+    color: #64748b;
+    line-height: 1.5;
+  }
+
+  .generation-spinner {
+    width: 52px;
+    height: 52px;
+    margin: 0 auto;
+    border: 5px solid #dbeafe;
+    border-top-color: #2563eb;
+    border-right-color: #7c3aed;
+    border-radius: 50%;
+    animation: generation-spin .85s linear infinite;
+  }
+
+  @keyframes generation-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .generation-overlay-progress {
+    width: 100%;
+    height: 14px;
+    margin: 20px 0 8px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #e2e8f0;
+  }
+
+  .generation-overlay-fill {
+    width: 0%;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #2563eb, #7c3aed);
+    transition: width .25s ease;
+  }
+
+  .generation-overlay-count {
+    font-weight: 900;
+    color: #334155;
+  }
+
+  .generation-overlay-note {
+    margin-top: 14px !important;
+    font-size: 12px;
+  }
+
+  [data-generation-control][disabled],
+  body.generation-locked button,
+  body.generation-locked input,
+  body.generation-locked textarea,
+  body.generation-locked select {
+    cursor: not-allowed !important;
+  }
+
+  body.generation-locked .tab-button {
+    pointer-events: none;
+  }
+
+  @media print {
+    .generation-overlay {
+      display: none !important;
+    }
+  }
+</style>
+
 </head>
 <body>
 <div class="app-shell">
@@ -793,16 +1015,26 @@ html,body { margin:0; background:#e8eaed; color:var(--ink); font-family:Arial,He
     <textarea id="trackInput" placeholder="https://open.spotify.com/track/...&#10;https://open.spotify.com/track/...&#10;https://open.spotify.com/track/..." spellcheck="false"></textarea>
     <div class="input-help">
       Paste one Spotify track link per line. You can paste dozens or even hundreds of links at once.
-      Spotify URIs and bare 22-character track IDs are also accepted. Duplicate links are removed. Set the starting card number when continuing an existing set. No track list or metadata is stored after the page is closed.
+      Spotify URIs and bare 22-character track IDs are also accepted. Duplicate links are removed. When you add links later, existing cards and their categories are preserved; new tracks are distributed across category deficits to keep the totals as even as possible. No track list or metadata is stored after the page is closed.
     </div>
-    <label class="option-row" for="startNumber">
-      Starting card number
-      <input type="number" id="startNumber" min="1" value="1" style="width:110px;padding:6px;border:1px solid #aeb4ba;border-radius:6px;">
-    </label>
-    <label class="option-row">
-      <input type="checkbox" id="randomizeSongs">
-      Randomize song order
-    </label>
+    <section class="card-settings">
+      <h2>Card settings</h2>
+      <div class="card-settings-grid">
+        <div class="field-group">
+          <label for="startNumber">Starting card number</label>
+          <input type="number" id="startNumber" min="1" value="1">
+          <small>Use a higher number when adding cards to an existing set.</small>
+        </div>
+
+        <label class="checkbox-card">
+          <input type="checkbox" id="randomizeSongs">
+          <span>
+            <strong>Randomize song order</strong>
+            <small>Shuffle the cards before they are generated.</small>
+          </span>
+        </label>
+      </div>
+    </section>
     <section class="category-settings">
       <h2>Difficulty categories</h2>
       <p>
@@ -819,8 +1051,21 @@ html,body { margin:0; background:#e8eaed; color:var(--ink); font-family:Arial,He
       </div>
     </section>
 
-    <button class="primary" id="generateButton" onclick="generateFromInput()">Generate cards</button>
-    <button class="secondary" onclick="restoreDefaultList()">Restore current list</button>
+    <div class="generate-actions">
+      <button class="primary" id="generateButton" onclick="generateFromInput()">Generate cards</button>
+      <button class="secondary" type="button" onclick="clearTrackList()">Clear track list</button>
+    </div>
+    <section class="generation-progress" id="generationProgress" hidden aria-live="polite">
+      <div class="generation-progress-header">
+        <span class="generation-progress-title" id="generationProgressTitle">Generating cards</span>
+        <span class="generation-progress-count" id="generationProgressCount">0 / 0</span>
+      </div>
+      <div class="generation-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="generationProgressTrack">
+        <div class="generation-progress-fill" id="generationProgressFill"></div>
+      </div>
+      <div class="generation-progress-message" id="generationProgressMessage">Preparing…</div>
+    </section>
+
   </div>
 
   <div class="friendly-status"><div><span class="status" id="status">Loading titles and release years with adaptive retries… Years use the earliest strong MusicBrainz title-and-artist match, then TheAudioDB, Spotify, and finally a strict iTunes title-and-artist fallback. Difficulties are divided evenly by release year: newest songs are easiest and oldest songs are expert.</span></div>
@@ -901,7 +1146,6 @@ html,body { margin:0; background:#e8eaed; color:var(--ink); font-family:Arial,He
 
 <main id="pages"></main>
 <script>
-const DEFAULT_TRACK_IDS = ["2TWLN4BJqA7jmWvIfrsIM1", "2R84UWGFwZg8XYjZQeQrJj", "4UxMdVVoR68ZS2iCR7bJf0", "5CMln9nwRTrlCfwXoz7cEK", "2o4iWZOFE8kkl0tK66WADw", "1DivBCYuEIHaeD3evYJE16", "2wu9tmhmdwIk0IcCHPndhI", "25brT5xsqdKuoZqvz3Ubrn", "5EcPtaqxmPvgLcB5gRPF2j", "3yxFiZHkQgJmLEyhij30rr", "67wewfYRTUs6OxfmgGfRho", "0omaeI4JjN2g5vHBCZHqUJ", "0uHrMbMv3c78398pIANDqR", "1a2GeLs7aMPvwJOjcVK0Vl", "0GiWi4EkPduFWHQyhiKpRB", "69B6SgxGtxSzeTbl6IRGwP", "48kxfGK5XbO1eW8Cf4Vil7", "5bdBg1Gc6IrDRCFM1BiQx7", "1GEBsLDvJGw7kviySRI6GX", "0cqRj7pUJDkTCEsJkx8snD", "1u8c2t2Cy7UBoG4ArRcF5g", "48lxT5qJF0yYyf2z4wB4xW", "7tW2Md8xOwnKPIYhCqPiU4", "5SaapweQAEx7X1R47ItZ75", "1MWpdDDf3Yk0w6o4oviMFY", "2ZodgwtywVovNUNIcKDpbD", "4GrQPpjaZmBf67b9Uh83T8", "5ZLkc5RY1NM4FtGWEd6HOE", "3pBPHHC2zKRAnSG5mKAcHC", "6epn3r7S14KUqlReYr77hA", "50kpGaPAhYJ3sGmk6vplg0", "5HpyAE2VqYmT5thP5QboGW", "07vM3GM9QrrhGYuIMCBh3C", "5ljuGR6Fv7B2mviKflDoE4", "7M8oLiR9q2He0mnJVLYYYj", "6HfzAzEWhwo19n2jrJnM7k", "3qbb77qMxI5v013fqfRUzc", "72LwJNYsbIBt7QbVf4X67P", "1RBAmptvCgOBmUQorOiT31", "2ytVeoA2wq5lgVHBWQIMoa", "5UKN8Siz4jJvMsEInb9PSG", "2LcmbuYX7tyR4DWy3b273L", "0kINWIY7BToJACjRzIOqsz", "64OgqQLngm2dXl9CYkAGNx", "0ya4rRxJIIF1B0bLpbJrNP", "3v0ouAltce6AySBTYBP3pk", "4RxzgZMbYLLnLYaW00Wv4q", "1buASziRLNHXcTVYFWZ8EK", "024pThriWXJRFgGQuixYs7", "7KNARINQkhCyM2qpx4tMN3", "0q8Ft87t6fIUZdtve5PwKW", "1JzF2beR76cvyy9zgzuMGV", "6g457M17Mjisk9kbqmQMMO", "2IV6ArKIuTpNxqXCCHd0mG", "0kosUz0jePvjiz4ctmR6wL", "2lnzGkdtDj5mtlcOW2yRtG", "63Tl9k1sH8tznn3bqoMuyF", "4A7tc8ZBC1fsJaNErPnWCo", "4T2mvqNOm67uvkCyfIHzPV", "65Q72X0pHDL7umhtunUVZ8", "4RHsbY8e24Z52CQ4SMZzpM", "37UCSVSqiPGdR1DijOFyYY", "6b8Be6ljOzmkOmFslEb23P", "6SKwQghsR8AISlxhcwyA9R", "6UelLqGlWMcVH1E5c4H7lY", "4Dvkj6JhhA12EX05fT7y2e", "4cluDES4hQEUhmXj6TXkSo", "5T7ZFtCcOgkpjxcuaeZbw0", "3f7gYMirBEKuc57218BjOY", "1mXuMM6zjPgjL4asbBsgnt", "455AfCsOhhLPRc68sE01D8", "14iN3o8ptQ8cFVZTEmyQRV", "0ByMNEPAPpOR5H69DVrTNy", "6qn9YLKt13AGvpq9jfO8py", "2yWlGEgEfPot0lv3OAjuG3", "3rUGC1vUpkDG9CZFHMur1t", "52xJxFP6TqMuO4Yt0eOkMz", "4Y8vb1uy9IjM2V1hqvrAid", "600HVBpzF1WfBdaRwbEvLz", "5gB2IrxOCX2j9bMnHKP38i", "3T74kgnbHw8JqkYGJKD4Tl", "5f2TWu6R2YYCJtLQ0fP78H", "0VjIjW4GlUZAMYd2vXMi3b", "7J1uxwnxfQLu4APicE5Rnj", "3BovdzfaX4jb5KFQwoPfAw", "2LlQb7Uoj1kKyGhlkBf9aC", "0SiywuOBRcynK0uKGWdCnn", "1QV6tiMFM6fSOKOGLMHYYg", "0tgVpDi06FyKpA1z0VMD4v", "7qiZfU4dY1lWllzX7mPBI3", "1VdZ0vKfR5jneCmWIUAMxK", "34gCuhDGsG4bRPIf9bb02f", "0oOhTU3RPJOZdegnh5MjFX", "7HPkvsnyQqQ6PmpLk7D7IR", "5as4m1rmKAmL2jbECYkZKB", "4RA0T0I98uoBcWmnU6uOQ1", "2Oaq2Q6JFS1xIXGL9TVryY", "0wMAsL98TGuI6eWUEocd1O", "7D5vAulNfrQV6xEwzgH0OF", "7xkQdy0cy5ymoWT7nedvLz", "7JJmb5XwzOO8jgpou264Ml", "3QGsuHI8jO1Rx4JWLUh9jd", "1vLqigPHwiFnXsfrLMehV1", "42UBPzRMh5yyz0EDPr6fr1", "5N3hjp1WNayUPZrA8kJmJP", "5IVuqXILoxVWvWEPm82Jxr", "2CvOqDpQIMw69cCzWqr5yr", "557un1HgwYMuqfWGSTmnxw", "5QDLhrAOJJdNAmCTJ8xMyW", "3Fcfwhm8oRrBvBZ8KGhtea", "3AJwUDP919kvQ9QcozQPxg", "0FDzzruyVECATHXKHFs9eJ", "4JQdXqUO5tFTSvWIgA5gRD", "6AWDTrLLcEZDFn0qHKwzMW", "5TQtFBmr0dM9VvG6LXvmwI", "28IIAhPoJXM2Q0IRXtGmUf", "1f9X68h6QGh01bD0r4g9DF", "5d0KtdnoPpniNFngV5ehcP", "2rzZ0IGxgrGUAPwrWn80z7", "0b9RNAzGtDRRMQS1cF9HXT", "7uQ7e7nzbtyX87eIYHpj6Z", "2GYHyAoLWpkxLVa4oYTVko", "34dx8DACTJsc3rsJdaEIQw", "4aOqKc3Zdg4m5uK3mqAM8B", "1RkgroVbrTs8gFeHJ4znJt", "00tDSqUMjyOICNNmQSBE8w", "1pyBvrqSmFtD3yUnXNTlJh", "1Sr0JwYtHhuzGgPldwmN7x", "3jFnYU30fibZbOE9y4wPQx", "5fySAmiBZEILTlSwo8n4Wi", "2W3vVFpXCYlazEHZFyL3ue", "70IUWsl6v4II26gg2iBeOi", "5CeKSGsjyGQ0ck2UeMDbBw", "1rfofaqEpACxVEHIZBJe6W", "0TK2YIli7K1leLovkQiNik", "5wANPM4fQCJwkGd4rN57mH"];
 let TRACK_IDS = [];
 const PRELOADED_ARTISTS = {"2TWLN4BJqA7jmWvIfrsIM1": "Kinderen voor Kinderen", "2R84UWGFwZg8XYjZQeQrJj": "Tom Graus", "4UxMdVVoR68ZS2iCR7bJf0": "Kabouter Plop", "5CMln9nwRTrlCfwXoz7cEK": "Vinzzent", "2o4iWZOFE8kkl0tK66WADw": "Marco Borsato", "1DivBCYuEIHaeD3evYJE16": "Nielson", "2wu9tmhmdwIk0IcCHPndhI": "Lustrum U.V.S.V./N.V.V.S.U., Jopke, Roeland Beelen", "25brT5xsqdKuoZqvz3Ubrn": "K3", "5EcPtaqxmPvgLcB5gRPF2j": "Snollebollekes", "3yxFiZHkQgJmLEyhij30rr": "Marco Borsato", "67wewfYRTUs6OxfmgGfRho": "Roxy Dekker", "0omaeI4JjN2g5vHBCZHqUJ": "Roxy Dekker", "0uHrMbMv3c78398pIANDqR": "Joost", "1a2GeLs7aMPvwJOjcVK0Vl": "Acda en de Munnik", "0GiWi4EkPduFWHQyhiKpRB": "Guus Meeuwis", "69B6SgxGtxSzeTbl6IRGwP": "Guus Meeuwis, Vagant", "48kxfGK5XbO1eW8Cf4Vil7": "Bankzitters", "5bdBg1Gc6IrDRCFM1BiQx7": "Bankzitters", "1GEBsLDvJGw7kviySRI6GX": "Taylor Swift", "0cqRj7pUJDkTCEsJkx8snD": "Taylor Swift", "1u8c2t2Cy7UBoG4ArRcF5g": "Taylor Swift", "48lxT5qJF0yYyf2z4wB4xW": "Jaxomy, Agatino Romero, Raffaella Carrà", "7tW2Md8xOwnKPIYhCqPiU4": "Samuel Welten", "5SaapweQAEx7X1R47ItZ75": "Suzan & Freek", "1MWpdDDf3Yk0w6o4oviMFY": "Suzan & Freek", "2ZodgwtywVovNUNIcKDpbD": "Suzan & Freek", "4GrQPpjaZmBf67b9Uh83T8": "Andre Hazes", "5ZLkc5RY1NM4FtGWEd6HOE": "Andre Hazes", "3pBPHHC2zKRAnSG5mKAcHC": "André Hazes Jr.", "6epn3r7S14KUqlReYr77hA": "Justin Bieber, Ludacris", "50kpGaPAhYJ3sGmk6vplg0": "Justin Bieber", "5HpyAE2VqYmT5thP5QboGW": "Antoon", "07vM3GM9QrrhGYuIMCBh3C": "Antoon", "5ljuGR6Fv7B2mviKflDoE4": "Linda Roos & Jessica", "7M8oLiR9q2He0mnJVLYYYj": "Bankzitters", "6HfzAzEWhwo19n2jrJnM7k": "Bankzitters, Roxy Dekker", "3qbb77qMxI5v013fqfRUzc": "Roxy Dekker", "72LwJNYsbIBt7QbVf4X67P": "Turfy Gang, Russo", "1RBAmptvCgOBmUQorOiT31": "Russo, Matthy", "2ytVeoA2wq5lgVHBWQIMoa": "Snelle", "5UKN8Siz4jJvMsEInb9PSG": "Snelle, Maan", "2LcmbuYX7tyR4DWy3b273L": "Goldband", "0kINWIY7BToJACjRzIOqsz": "Maan, Goldband", "64OgqQLngm2dXl9CYkAGNx": "Lil Kleine, Boef", "0ya4rRxJIIF1B0bLpbJrNP": "Lil Kleine, Ronnie Flex", "3v0ouAltce6AySBTYBP3pk": "Gers Pardoel, Sef", "4RxzgZMbYLLnLYaW00Wv4q": "Gers Pardoel", "1buASziRLNHXcTVYFWZ8EK": "BLØF", "024pThriWXJRFgGQuixYs7": "Joost", "7KNARINQkhCyM2qpx4tMN3": "Guus Meeuwis, Vagant", "0q8Ft87t6fIUZdtve5PwKW": "Lil Kleine, Samuel Welten, De Amsterdamse Zomer", "1JzF2beR76cvyy9zgzuMGV": "Antoon, Big2", "6g457M17Mjisk9kbqmQMMO": "Antoon", "2IV6ArKIuTpNxqXCCHd0mG": "Kris Kross Amsterdam, Antoon, Sigourney K", "0kosUz0jePvjiz4ctmR6wL": "Shakira, Burna Boy", "2lnzGkdtDj5mtlcOW2yRtG": "Shakira", "63Tl9k1sH8tznn3bqoMuyF": "Shakira", "4A7tc8ZBC1fsJaNErPnWCo": "Kinderen voor Kinderen", "4T2mvqNOm67uvkCyfIHzPV": "Kinderen voor Kinderen", "65Q72X0pHDL7umhtunUVZ8": "K3", "4RHsbY8e24Z52CQ4SMZzpM": "K3", "37UCSVSqiPGdR1DijOFyYY": "Zara Larsson", "6b8Be6ljOzmkOmFslEb23P": "Bruno Mars", "6SKwQghsR8AISlxhcwyA9R": "Bruno Mars", "6UelLqGlWMcVH1E5c4H7lY": "Harry Styles", "4Dvkj6JhhA12EX05fT7y2e": "Harry Styles", "4cluDES4hQEUhmXj6TXkSo": "One Direction", "5T7ZFtCcOgkpjxcuaeZbw0": "One Direction", "3f7gYMirBEKuc57218BjOY": "Katy Perry, Snoop Dogg", "1mXuMM6zjPgjL4asbBsgnt": "Katy Perry", "455AfCsOhhLPRc68sE01D8": "Katy Perry", "14iN3o8ptQ8cFVZTEmyQRV": "Katy Perry", "0ByMNEPAPpOR5H69DVrTNy": "Rihanna", "6qn9YLKt13AGvpq9jfO8py": "Rihanna, Calvin Harris", "2yWlGEgEfPot0lv3OAjuG3": "Tate McRae, F1 The Album", "3rUGC1vUpkDG9CZFHMur1t": "Tate McRae", "52xJxFP6TqMuO4Yt0eOkMz": "Carolina Gaitán - La Gaita, Mauro Castillo, Adassa, Rhenzy Feliz, Diane Guerrero, Stephanie Beatriz, Encanto - Cast", "4Y8vb1uy9IjM2V1hqvrAid": "Phil Collins", "600HVBpzF1WfBdaRwbEvLz": "Idina Menzel", "5gB2IrxOCX2j9bMnHKP38i": "Rascal Flatts", "3T74kgnbHw8JqkYGJKD4Tl": "Phil Collins", "5f2TWu6R2YYCJtLQ0fP78H": "Will Smith", "0VjIjW4GlUZAMYd2vXMi3b": "The Weeknd", "7J1uxwnxfQLu4APicE5Rnj": "Michael Jackson", "3BovdzfaX4jb5KFQwoPfAw": "Michael Jackson", "2LlQb7Uoj1kKyGhlkBf9aC": "Michael Jackson", "0SiywuOBRcynK0uKGWdCnn": "Lady Gaga", "1QV6tiMFM6fSOKOGLMHYYg": "Lady Gaga", "0tgVpDi06FyKpA1z0VMD4v": "Ed Sheeran", "7qiZfU4dY1lWllzX7mPBI3": "Ed Sheeran", "1VdZ0vKfR5jneCmWIUAMxK": "Ed Sheeran", "34gCuhDGsG4bRPIf9bb02f": "Ed Sheeran", "0oOhTU3RPJOZdegnh5MjFX": "Monique Smit", "7HPkvsnyQqQ6PmpLk7D7IR": "Jan Smit", "5as4m1rmKAmL2jbECYkZKB": "Guus Meeuwis", "4RA0T0I98uoBcWmnU6uOQ1": "Monique Smit, Tim Douwsma", "2Oaq2Q6JFS1xIXGL9TVryY": "De Jeugd Van Tegenwoordig", "0wMAsL98TGuI6eWUEocd1O": "Lange Frans, Baas B", "7D5vAulNfrQV6xEwzgH0OF": "De Jeugd Van Tegenwoordig", "7xkQdy0cy5ymoWT7nedvLz": "Jason Derulo", "7JJmb5XwzOO8jgpou264Ml": "Shawn Mendes", "3QGsuHI8jO1Rx4JWLUh9jd": "Shawn Mendes", "1vLqigPHwiFnXsfrLMehV1": "Sabrina Carpenter", "42UBPzRMh5yyz0EDPr6fr1": "Sabrina Carpenter", "5N3hjp1WNayUPZrA8kJmJP": "Sabrina Carpenter", "5IVuqXILoxVWvWEPm82Jxr": "Beyoncé, JAY-Z", "2CvOqDpQIMw69cCzWqr5yr": "Beyoncé", "557un1HgwYMuqfWGSTmnxw": "Beyoncé", "5QDLhrAOJJdNAmCTJ8xMyW": "BTS", "3Fcfwhm8oRrBvBZ8KGhtea": "Coldplay", "3AJwUDP919kvQ9QcozQPxg": "Coldplay", "0FDzzruyVECATHXKHFs9eJ": "Coldplay", "4JQdXqUO5tFTSvWIgA5gRD": "Swifty Official", "6AWDTrLLcEZDFn0qHKwzMW": "LUNA", "5TQtFBmr0dM9VvG6LXvmwI": "FLEMMING", "28IIAhPoJXM2Q0IRXtGmUf": "FLEMMING", "1f9X68h6QGh01bD0r4g9DF": "Mart Hoogkamer", "5d0KtdnoPpniNFngV5ehcP": "Emma Heesters", "2rzZ0IGxgrGUAPwrWn80z7": "Davina Michelle, Beste Zangers", "0b9RNAzGtDRRMQS1cF9HXT": "Claude", "7uQ7e7nzbtyX87eIYHpj6Z": "S10", "2GYHyAoLWpkxLVa4oYTVko": "Stromae", "34dx8DACTJsc3rsJdaEIQw": "Stromae", "4aOqKc3Zdg4m5uK3mqAM8B": "Nielson", "1RkgroVbrTs8gFeHJ4znJt": "Nielson, BLØF", "00tDSqUMjyOICNNmQSBE8w": "Thijs Boontjes", "1pyBvrqSmFtD3yUnXNTlJh": "Thomas Berge, Jack", "1Sr0JwYtHhuzGgPldwmN7x": "Turfy Gang, LA$$A", "3jFnYU30fibZbOE9y4wPQx": "Kraantje Pappie, MC Jiggy Djé", "5fySAmiBZEILTlSwo8n4Wi": "Bizzey, Jozo, Kraantje Pappie", "2W3vVFpXCYlazEHZFyL3ue": "Froukje", "70IUWsl6v4II26gg2iBeOi": "Froukje", "5CeKSGsjyGQ0ck2UeMDbBw": "Jonna Fraser, Frenna", "1rfofaqEpACxVEHIZBJe6W": "Camila Cabello, Young Thug", "0TK2YIli7K1leLovkQiNik": "Shawn Mendes, Camila Cabello", "5wANPM4fQCJwkGd4rN57mH": "Olivia Rodrigo"};
 const SPOTIFY_METADATA_OVERRIDES = {
@@ -1553,16 +1797,285 @@ async function fetchMusicBrainzMetadata(title, artist) {
 
 function sleep(ms) { return new Promise(r => setTimeout(r,ms)); }
 
-async function resolveAll(runId = ++activeGeneration) {
-  const out = [];
-  for (let i=0; i<TRACK_IDS.length; i++) {
+
+
+let generationInProgress = false;
+
+function setGenerationLocked(locked) {
+  generationInProgress = locked;
+
+  const overlay = document.getElementById("generationOverlay");
+  document.body.classList.toggle("generation-locked", locked);
+
+  if (overlay) {
+    overlay.hidden = !locked;
+  }
+
+  const controls = document.querySelectorAll(
+    '#generateTab input, #generateTab textarea, #generateTab select, ' +
+    '#generateTab button, #reviewTab input, #reviewTab select, #reviewTab button, ' +
+    '.tab-button'
+  );
+
+  controls.forEach(control => {
+    if (locked) {
+      control.dataset.wasDisabled = control.disabled ? "true" : "false";
+      control.disabled = true;
+    } else {
+      const wasDisabled = control.dataset.wasDisabled === "true";
+      control.disabled = wasDisabled;
+      delete control.dataset.wasDisabled;
+    }
+  });
+
+  // Keep the overlay itself usable and visible.
+  if (locked) {
+    document.getElementById("generationOverlay")?.removeAttribute("hidden");
+  }
+}
+
+function updateGenerationOverlay(current, total, message) {
+  const fill = document.getElementById("generationOverlayFill");
+  const count = document.getElementById("generationOverlayCount");
+  const messageElement = document.getElementById("generationOverlayMessage");
+
+  const percentage = total > 0
+    ? Math.max(0, Math.min(100, Math.round((current / total) * 100)))
+    : 0;
+
+  if (fill) fill.style.width = `${percentage}%`;
+  if (count) count.textContent = `${current} / ${total} (${percentage}%)`;
+  if (messageElement && message) messageElement.textContent = message;
+}
+
+function finishGenerationLock() {
+  setGenerationLocked(false);
+}
+
+function resetGenerationProgress(total) {
+  const panel = document.getElementById("generationProgress");
+  const fill = document.getElementById("generationProgressFill");
+  const count = document.getElementById("generationProgressCount");
+  const message = document.getElementById("generationProgressMessage");
+  const track = document.getElementById("generationProgressTrack");
+  const title = document.getElementById("generationProgressTitle");
+  panel.hidden = false;
+  panel.classList.remove("complete","error");
+  fill.style.width = "0%";
+  count.textContent = `0 / ${total}`;
+  message.textContent = "Preparing track metadata…";
+  title.textContent = "Generating cards";
+  track.setAttribute("aria-valuenow","0");
+}
+function updateGenerationProgress(current,total,message) {
+  const panel = document.getElementById("generationProgress");
+  const fill = document.getElementById("generationProgressFill");
+  const count = document.getElementById("generationProgressCount");
+  const messageElement = document.getElementById("generationProgressMessage");
+  const track = document.getElementById("generationProgressTrack");
+  const percentage = total > 0 ? Math.max(0,Math.min(100,Math.round((current/total)*100))) : 0;
+  panel.hidden = false;
+  fill.style.width = `${percentage}%`;
+  count.textContent = `${current} / ${total} (${percentage}%)`;
+  messageElement.textContent = message || "Processing…";
+  track.setAttribute("aria-valuenow",String(percentage));
+}
+function completeGenerationProgress(total,missingYears=0) {
+  const panel = document.getElementById("generationProgress");
+  const title = document.getElementById("generationProgressTitle");
+  const message = document.getElementById("generationProgressMessage");
+  updateGenerationProgress(total,total,"Cards are ready for review and printing.");
+  panel.classList.add("complete");
+  title.textContent = "Generation complete";
+  if (missingYears > 0) {
+    message.textContent = `Cards are ready. ${missingYears} release year${missingYears === 1 ? "" : "s"} could not be retrieved and can be edited manually.`;
+  }
+}
+function failGenerationProgress(message) {
+  const panel = document.getElementById("generationProgress");
+  const title = document.getElementById("generationProgressTitle");
+  const messageElement = document.getElementById("generationProgressMessage");
+  panel.hidden = false;
+  panel.classList.add("error");
+  title.textContent = "Generation stopped";
+  messageElement.textContent = message || "An unexpected error occurred.";
+}
+
+
+
+
+function assignBalancedCategoriesToNewItems(existingItems, newItems) {
+  if (!CATEGORY_CONFIG.length || !newItems.length) return newItems;
+
+  const totalAfterAddition = existingItems.length + newItems.length;
+  const categoryCount = CATEGORY_CONFIG.length;
+  const baseTarget = Math.floor(totalAfterAddition / categoryCount);
+  const remainder = totalAfterAddition % categoryCount;
+
+  // Earlier categories receive one extra card when the total is not divisible.
+  const targets = new Map(
+    CATEGORY_CONFIG.map((category, index) => [
+      category.id,
+      baseTarget + (index < remainder ? 1 : 0)
+    ])
+  );
+
+  const currentCounts = new Map(
+    CATEGORY_CONFIG.map(category => [category.id, 0])
+  );
+
+  existingItems.forEach(item => {
+    if (currentCounts.has(item.level)) {
+      currentCounts.set(item.level, currentCounts.get(item.level) + 1);
+    }
+  });
+
+  const remainingSlots = new Map(
+    CATEGORY_CONFIG.map(category => [
+      category.id,
+      Math.max(
+        0,
+        (targets.get(category.id) || 0) -
+        (currentCounts.get(category.id) || 0)
+      )
+    ])
+  );
+
+  // Sort new songs newest to oldest so category order still follows year.
+  const sortedNewItems = [...newItems].sort((a, b) => {
+    const yearA = Number(a.year) || -Infinity;
+    const yearB = Number(b.year) || -Infinity;
+    return yearB - yearA;
+  });
+
+  let itemIndex = 0;
+
+  // Fill each category's deficit in order from newest to oldest.
+  CATEGORY_CONFIG.forEach(category => {
+    let slots = remainingSlots.get(category.id) || 0;
+
+    while (slots > 0 && itemIndex < sortedNewItems.length) {
+      sortedNewItems[itemIndex].level = category.id;
+      itemIndex++;
+      slots--;
+    }
+  });
+
+  // If existing categories were already too imbalanced to meet the exact
+  // targets without moving old cards, put remaining new cards into whichever
+  // category currently has the fewest cards.
+  while (itemIndex < sortedNewItems.length) {
+    const countsIncludingAssigned = new Map(currentCounts);
+
+    sortedNewItems.slice(0, itemIndex).forEach(item => {
+      countsIncludingAssigned.set(
+        item.level,
+        (countsIncludingAssigned.get(item.level) || 0) + 1
+      );
+    });
+
+    const leastFilled = CATEGORY_CONFIG.reduce((best, category) => {
+      if (!best) return category;
+
+      const bestCount = countsIncludingAssigned.get(best.id) || 0;
+      const categoryCountValue =
+        countsIncludingAssigned.get(category.id) || 0;
+
+      return categoryCountValue < bestCount ? category : best;
+    }, null);
+
+    sortedNewItems[itemIndex].level = leastFilled.id;
+    itemIndex++;
+  }
+
+  return newItems;
+}
+
+function assignCategoryToNewItem(item) {
+  if (!CATEGORY_CONFIG.length) {
+    item.level = "uncategorized";
+    return item;
+  }
+
+  // Use the year-based provisional assignment only for newly added tracks.
+  // Existing cards keep their current category exactly as-is.
+  item.level = estimatedLevel(item.year);
+  return item;
+}
+
+function cloneCardItem(item) {
+  return item ? { ...item } : null;
+}
+
+function buildExistingItemMap() {
+  return new Map(
+    currentItems
+      .filter(item => item && item.id)
+      .map(item => [item.id, cloneCardItem(item)])
+  );
+}
+
+function findNewTrackIds(trackIds, existingMap) {
+  return trackIds.filter(id => !existingMap.has(id));
+}
+
+async function resolveAll(runId = ++activeGeneration, options = {}) {
+  const existingMap = options.existingMap || new Map();
+  const newTrackIds = findNewTrackIds(TRACK_IDS, existingMap);
+  const totalNew = newTrackIds.length;
+
+  const resolvedNewItems = [];
+  const resultById = new Map(existingMap);
+
+  if (totalNew === 0) {
+    const reusedItems = TRACK_IDS
+      .map(id => cloneCardItem(resultById.get(id)))
+      .filter(Boolean);
+
+    currentItems = reusedItems;
+    generatedItemsSnapshot = reusedItems.map(item => ({ ...item }));
+
+    render(reusedItems, true);
+    renderEditor(reusedItems);
+
+    completeGenerationProgress(0, reusedItems.filter(item => !item.year).length);
+    updateGenerationOverlay(
+      0,
+      0,
+      "No new tracks were found. Existing cards were reused."
+    );
+    finishGenerationLock();
+
+    document.getElementById("status").textContent =
+      `No new tracks to generate. Reused ${reusedItems.length} existing cards.`;
+    return;
+  }
+
+  for (let i = 0; i < newTrackIds.length; i++) {
     if (runId !== activeGeneration) return;
-    const id = TRACK_IDS[i];
-    document.getElementById("status").textContent = `Resolving ${i+1} of ${TRACK_IDS.length}…`;
+
+    const id = newTrackIds[i];
+
+    document.getElementById("status").textContent =
+      `Resolving new track ${i + 1} of ${totalNew}…`;
+
+    updateGenerationProgress(
+      i,
+      totalNew,
+      `Loading metadata for new track ${i + 1} of ${totalNew}…`
+    );
+
+    updateGenerationOverlay(
+      i,
+      totalNew,
+      `Loading metadata for new track ${i + 1} of ${totalNew}…`
+    );
+
     let item = {
       artist: PRELOADED_ARTISTS[id] || "",
       ...(OVERRIDES[id] || {})
     };
+
     try {
       if (!isValidTrackTitle(item.title) || !item.artist || item.artist === "Unknown artist") {
         const spotifyMeta = await fetchSpotify(id);
@@ -1582,7 +2095,8 @@ async function resolveAll(runId = ++activeGeneration) {
       ) {
         const verifiedArtist = PRELOADED_ARTISTS[id] || item.artist || "";
         const mbMeta = await fetchMusicBrainzMetadata(item.title, verifiedArtist);
-        item.artist = verifiedArtist;
+        item.artist = verifiedArtist || item.artist;
+
         if (!item.year && mbMeta.year) {
           item.year = mbMeta.year;
           item.yearSource = "original release";
@@ -1591,8 +2105,6 @@ async function resolveAll(runId = ++activeGeneration) {
           item.matchedArtist = mbMeta.matchedArtist;
         }
 
-        // If no strict title + artist match exists, use Spotify's displayed
-        // album/track release year as a fallback instead of leaving it blank.
         if (!item.year) {
           await sleep(750);
           const audioDbYear = await fetchTheAudioDBReleaseYear(
@@ -1625,32 +2137,100 @@ async function resolveAll(runId = ++activeGeneration) {
             item.yearSource = "iTunes";
           }
         }
+
         await sleep(2000);
       }
 
       if (!item.artist) item.artist = "Artist not found";
-    } catch (e) {
-      item.error = String(e.message || e);
+    } catch (error) {
+      item.error = String(error.message || error);
     }
-    item.level = item.level || estimatedLevel(item.year);
-    out.push({ id, ...item });
-    rebalanceLevels(out);
-    render(out, false);
+
+    // Category is assigned after all new tracks have loaded, so the
+    // total distribution can be balanced without changing existing cards.
+    item.id = id;
+
+    resolvedNewItems.push(item);
+    resultById.set(id, item);
+
+    const progressiveItems = TRACK_IDS
+      .map(trackId => cloneCardItem(resultById.get(trackId)))
+      .filter(Boolean);
+
+    progressiveItems.forEach(progressItem => {
+      if (!progressItem.level) {
+        assignCategoryToNewItem(progressItem);
+      }
+    });
+
+    render(progressiveItems, false);
+
+    updateGenerationProgress(
+      i + 1,
+      totalNew,
+      `Finished ${i + 1} of ${totalNew} new tracks.`
+    );
+
+    updateGenerationOverlay(
+      i + 1,
+      totalNew,
+      `Finished ${i + 1} of ${totalNew} new tracks.`
+    );
   }
+
   if (runId !== activeGeneration) return;
-  rebalanceLevels(out);
+
+  const existingItems = [...existingMap.values()].map(item => ({ ...item }));
+  assignBalancedCategoriesToNewItems(existingItems, resolvedNewItems);
+
+  // Put the now-balanced new items back into the result map.
+  resolvedNewItems.forEach(item => resultById.set(item.id, item));
+
+  const out = TRACK_IDS
+    .map(id => cloneCardItem(resultById.get(id)))
+    .filter(Boolean);
+
   currentItems = out;
-  generatedItemsSnapshot = out.map(item => ({ ...item }));
+
+  // Preserve generated snapshots for existing cards, while adding snapshots
+  // for newly generated tracks.
+  const oldSnapshotMap = new Map(
+    generatedItemsSnapshot.map(item => [item.id, { ...item }])
+  );
+
+  generatedItemsSnapshot = out.map(item =>
+    oldSnapshotMap.has(item.id)
+      ? { ...oldSnapshotMap.get(item.id) }
+      : { ...item }
+  );
+
   render(out, true);
   renderEditor(out);
-  document.getElementById('reviewTabButton').disabled = false;
+  document.getElementById("reviewTabButton").disabled = false;
+
   const uncertain = out.filter(x => !x.year).length;
+
+  completeGenerationProgress(totalNew, uncertain);
+  updateGenerationOverlay(
+    totalNew,
+    totalNew,
+    uncertain
+      ? `Added ${totalNew} new track${totalNew === 1 ? "" : "s"}. ${uncertain} release year${uncertain === 1 ? "" : "s"} can be edited manually.`
+      : `Added ${totalNew} new track${totalNew === 1 ? "" : "s"}. Cards are ready for review and printing.`
+  );
+
+  finishGenerationLock();
+
   const counts = levelCounts(out);
+
   document.getElementById("status").innerHTML =
-    `Ready — ${CATEGORY_CONFIG.map(category =>
+    `Ready — added ${totalNew} new track${totalNew === 1 ? "" : "s"}; preserved ${out.length - totalNew} existing card${out.length - totalNew === 1 ? "" : "s"} and their categories. ` +
+    `${CATEGORY_CONFIG.map(category =>
       `${esc(category.label)} ${counts[category.id] || 0}`
     ).join(", ")}` +
-    (uncertain ? ` — <span class="warning">${uncertain} year(s) still unavailable</span>` : "");
+    (uncertain
+      ? ` — <span class="warning">${uncertain} year(s) still unavailable</span>`
+      : "");
 }
 
 function frontCard(item, n) {
@@ -1765,6 +2345,8 @@ function generateFromInput() {
   if (!ids.length) {
     document.getElementById("status").innerHTML =
       '<span class="warning">No valid Spotify track links were found.</span>';
+    failGenerationProgress("No valid Spotify track links were found.");
+    finishGenerationLock();
     return;
   }
 
@@ -1781,24 +2363,51 @@ function generateFromInput() {
 
   TRACK_IDS = shouldRandomize ? shuffleArray(ids) : ids;
   updateCardCount();
-  document.getElementById("pages").innerHTML = "";
-  currentItems = [];
-  generatedItemsSnapshot = [];
-  renderEditor([]);
   document.getElementById("status").textContent =
     `Starting generation for ${TRACK_IDS.length} cards, starting at #${currentStartNumber}${shouldRandomize ? ' in random order' : ''}…`;
 
+  const existingMap = buildExistingItemMap();
+  const newTrackIds = findNewTrackIds(TRACK_IDS, existingMap);
   const runId = ++activeGeneration;
-  render([], false);
-  resolveAll(runId);
+
+  resetGenerationProgress(newTrackIds.length);
+  setGenerationLocked(true);
+
+  updateGenerationOverlay(
+    0,
+    newTrackIds.length,
+    newTrackIds.length
+      ? `Preparing ${newTrackIds.length} new track${newTrackIds.length === 1 ? "" : "s"}…`
+      : "Checking the track list for new songs…"
+  );
+
+  resolveAll(runId, { existingMap }).catch(error => {
+    console.error(error);
+    failGenerationProgress(error?.message || "Card generation failed.");
+    updateGenerationOverlay(
+      0,
+      newTrackIds.length,
+      error?.message || "Card generation failed."
+    );
+    finishGenerationLock();
+  });
 }
 
-function restoreDefaultList() {
-  const input = document.getElementById("trackInput");
-  input.value = DEFAULT_TRACK_IDS
-    .map(id => `https://open.spotify.com/track/${id}`)
-    .join("\n");
-  generateFromInput();
+
+
+function clearTrackList() {
+  document.getElementById("trackInput").value = "";
+  TRACK_IDS = [];
+  currentItems = [];
+  generatedItemsSnapshot = [];
+  updateCardCount();
+  renderEditor([]);
+  document.getElementById("pages").innerHTML = "";
+  document.getElementById("status").textContent =
+    "Track list cleared. Paste Spotify track links to begin.";
+
+  const progress = document.getElementById("generationProgress");
+  if (progress) progress.hidden = true;
 }
 
 function initializeTrackInput() {
@@ -1811,6 +2420,7 @@ function initializeTrackInput() {
 
 
 function switchTab(tabName) {
+  if (generationInProgress) return;
   const generateActive = tabName === "generate";
 
   document.getElementById("generateTab").classList.toggle("active", generateActive);
@@ -1987,27 +2597,53 @@ function renderEditor(items) {
 function applyCardOverrides() {
   const cards = [...document.querySelectorAll("#reviewList .review-card")];
   const byId = new Map(currentItems.map(item => [item.id, item]));
+  const generatedById = new Map(
+    generatedItemsSnapshot.map(item => [item.id, item])
+  );
+
+  let changedCount = 0;
 
   cards.forEach(card => {
     const item = byId.get(card.dataset.id);
+    const generated = generatedById.get(card.dataset.id);
     if (!item) return;
 
-    const title = card.querySelector(".edit-title").value.trim();
-    const artist = card.querySelector(".edit-artist").value.trim();
+    const title = card.querySelector(".edit-title").value.trim() ||
+      "Track title unavailable";
+    const artist = card.querySelector(".edit-artist").value.trim() ||
+      "Artist unavailable";
     const yearRaw = card.querySelector(".edit-year").value.trim();
+    const year = yearRaw ? Number(yearRaw) : null;
     const level = card.querySelector(".edit-level").value;
 
-    item.title = title || "Track title unavailable";
-    item.artist = artist || "Artist unavailable";
-    item.year = yearRaw ? Number(yearRaw) : null;
+    item.title = title;
+    item.artist = artist;
+    item.year = year;
     item.level = level;
-    item.manualOverride = true;
+
+    const differsFromGenerated = generated
+      ? (
+          title !== generated.title ||
+          artist !== generated.artist ||
+          year !== generated.year ||
+          level !== generated.level
+        )
+      : true;
+
+    item.manualOverride = differsFromGenerated;
+
+    if (differsFromGenerated) {
+      changedCount++;
+    }
   });
 
   render(currentItems, true);
   renderReviewCards();
+
   document.getElementById("status").textContent =
-    `Overrides applied to ${currentItems.length} cards.`;
+    changedCount === 1
+      ? "1 card override saved."
+      : `${changedCount} card overrides saved.`;
 }
 
 function resetCardOverrides() {
@@ -2034,6 +2670,24 @@ if (TRACK_IDS.length) {
     "Paste Spotify track links above and click 'Generate cards'.";
 }
 </script>
+
+<div id="generationOverlay" class="generation-overlay" hidden aria-live="assertive">
+  <div class="generation-overlay-card">
+    <div class="generation-spinner" aria-hidden="true"></div>
+    <h2>Generating cards</h2>
+    <p id="generationOverlayMessage">
+      Please wait while the track metadata is being retrieved.
+    </p>
+    <div class="generation-overlay-progress">
+      <div id="generationOverlayFill" class="generation-overlay-fill"></div>
+    </div>
+    <div id="generationOverlayCount" class="generation-overlay-count">0 / 0</div>
+    <p class="generation-overlay-note">
+      Editing and navigation are temporarily disabled to prevent accidental changes.
+    </p>
+  </div>
+</div>
+
 <footer class="friendly-footer">
   Created by <strong>Harm Hoogeveen</strong>
 </footer>
